@@ -19,22 +19,52 @@ import (
 
 func main() {
 	flag.Parse()
-	id := flag.Arg(0)
-	url := flag.Arg(1)
-	selector := flag.Arg(2)
+	fname := flag.Arg(0)
 
-	txt, err := get(url, selector)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Fatal error: %v\n", err)
+	if jobs, err := start(fname); err != nil {
+		fmt.Fprintf(os.Stderr, "Fatal error during start up: %v\n", err)
 		os.Exit(1)
+	} else {
+		go scheduler(jobs)
 	}
-
-	data.Lock()
-	data.m[id] = txt
-	data.Unlock()
 
 	http.HandleFunc("/", handler)
 	gracefulserver.Serve(http.DefaultServeMux)
+}
+
+func start(fname string) ([]job, error) {
+	f, err := os.Open(fname)
+	if err != nil {
+		return nil, errors.WithMessage(err, "could not open file")
+	}
+
+	var ldata map[string]struct {
+		Url, Selector string
+	}
+
+	dec := json.NewDecoder(f)
+	if err = dec.Decode(&ldata); err != nil {
+		return nil, errors.WithMessage(err, "could not parse JSON file")
+	}
+
+	jobs := make([]job, 0, len(ldata))
+	for id := range ldata {
+		url := ldata[id].Url
+		selector := ldata[id].Selector
+
+		txt, err := get(url, selector)
+		if err != nil {
+			return nil, err
+		}
+
+		data.Lock()
+		data.m[id] = txt
+		data.Unlock()
+
+		jobs = append(jobs, job{id, url, selector})
+	}
+
+	return jobs, nil
 }
 
 func get(url, selector string) (string, error) {
