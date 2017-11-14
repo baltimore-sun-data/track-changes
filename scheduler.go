@@ -2,7 +2,6 @@ package main
 
 import (
 	"container/heap"
-	"log"
 	"math/rand"
 	"time"
 )
@@ -59,15 +58,7 @@ func scheduler(jobs []job) {
 
 func worker(workCh chan job, resultCh chan result) {
 	for j := range workCh {
-		log.Printf("Starting job %#v", j)
-		txt, err := get(j.url, j.selector)
-		if err != nil {
-			log.Printf("Error for %s: %v", j.id, err)
-		} else {
-			data.Lock()
-			data.m[j.id] = txt
-			data.Unlock()
-		}
+		data.Update(j)
 
 		sleep := dSleep - dSleep/2 + time.Duration(rand.Intn(int(dSleep)))
 		resultCh <- result{j, time.Now().Add(sleep), time.After(sleep)}

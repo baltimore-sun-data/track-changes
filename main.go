@@ -62,20 +62,12 @@ func start(fname string) ([]job, error) {
 	}
 
 	jobs := make([]job, 0, len(ldata))
-	for id := range ldata {
-		url := ldata[id].Url
-		selector := ldata[id].Selector
-
-		txt, err := get(url, selector)
-		if err != nil {
+	for id, val := range ldata {
+		j := job{id, val.Url, val.Selector}
+		jobs = append(jobs, j)
+		if err = data.Update(j); err != nil {
 			return nil, err
 		}
-
-		data.Lock()
-		data.m[id] = txt
-		data.Unlock()
-
-		jobs = append(jobs, job{id, url, selector})
 	}
 
 	return jobs, nil
@@ -120,12 +112,64 @@ func deferClose(err *error, f func() error) {
 	}
 }
 
-var data = struct {
-	m map[string]string
-	sync.RWMutex
-}{
-	m: make(map[string]string),
+type jsonData struct {
+	Url          string     `json:"url"`
+	Selector     string     `json:"selector"`
+	Content      string     `json:"content"`
+	LastAccessed time.Time  `json:"last_accessed"`
+	LastChange   time.Time  `json:"last_change"`
+	Err          string     `json:"error,omitempty"`
+	LastError    *time.Time `json:"last_error,omitempty"`
 }
+
+type apiResponse struct {
+	m map[string]jsonData
+	sync.RWMutex
+}
+
+func (a *apiResponse) Update(j job) error {
+	log.Printf("Updating %#v", j)
+
+	txt, err := get(j.url, j.selector)
+	now := time.Now()
+	var (
+		errStr  string
+		errTime *time.Time
+	)
+	if err != nil {
+		errStr = err.Error()
+		errTime = &now
+		log.Printf("Error for %s: %v", j.id, err)
+	}
+
+	a.Lock()
+	defer a.Unlock()
+
+	lastChange := a.m[j.id].LastChange
+	if a.m[j.id].Content != txt {
+		lastChange = now
+	}
+
+	a.m[j.id] = jsonData{
+		Url:          j.url,
+		Selector:     j.selector,
+		Content:      txt,
+		LastAccessed: now,
+		LastChange:   lastChange,
+		Err:          errStr,
+		LastError:    errTime,
+	}
+
+	return err
+}
+
+func (a *apiResponse) MarshalJSON() ([]byte, error) {
+	a.RLock()
+	defer a.RUnlock()
+	return json.Marshal(&a.m)
+}
+
+var data = apiResponse{m: make(map[string]jsonData)}
 
 func handler(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/" {
@@ -134,9 +178,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	e := json.NewEncoder(w)
-	data.RLock()
-	defer data.RUnlock()
-	if err := e.Encode(&data.m); err != nil {
+	if err := e.Encode(&data); err != nil {
 		log.Printf("Unexpected error: %v", err)
 	}
 }
