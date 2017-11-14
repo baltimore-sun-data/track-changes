@@ -27,6 +27,7 @@ func main() {
 	flag.IntVar(&nWorkers, "workers", 4, "how many simultaneously downloading workers to launch")
 	flag.DurationVar(&dSleep, "poll", 5*time.Minute, "how often to poll for changes")
 	fname := flag.String("file", "-", "File to open for jobs")
+	flag.DurationVar(&http.DefaultClient.Timeout, "timeout", 10*time.Second, "how long to wait for a slow server")
 	flag.Parse()
 
 	if jobs, err := start(*fname); err != nil {
