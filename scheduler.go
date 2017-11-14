@@ -7,11 +7,6 @@ import (
 	"time"
 )
 
-const (
-	nWorkers = 10
-	dSleep   = 5 * time.Minute
-)
-
 type job struct {
 	id, url, selector string
 }

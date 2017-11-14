@@ -9,6 +9,7 @@ import (
 	"os"
 	"strings"
 	"sync"
+	"time"
 
 	"golang.org/x/net/html"
 
@@ -17,11 +18,18 @@ import (
 	"github.com/pkg/errors"
 )
 
-func main() {
-	flag.Parse()
-	fname := flag.Arg(0)
+var (
+	nWorkers int
+	dSleep   time.Duration
+)
 
-	if jobs, err := start(fname); err != nil {
+func main() {
+	flag.IntVar(&nWorkers, "workers", 4, "how many simultaneously downloading workers to launch")
+	flag.DurationVar(&dSleep, "poll", 5*time.Minute, "how often to poll for changes")
+	fname := flag.String("file", "-", "File to open for jobs")
+	flag.Parse()
+
+	if jobs, err := start(*fname); err != nil {
 		fmt.Fprintf(os.Stderr, "Fatal error during start up: %v\n", err)
 		os.Exit(1)
 	} else {
@@ -33,9 +41,14 @@ func main() {
 }
 
 func start(fname string) ([]job, error) {
-	f, err := os.Open(fname)
-	if err != nil {
-		return nil, errors.WithMessage(err, "could not open file")
+	f := os.Stdin
+	var err error
+	if fname != "-" {
+		f, err = os.Open(fname)
+		if err != nil {
+			return nil, errors.WithMessage(err, "could not open file")
+		}
+		defer deferClose(&err, f.Close)
 	}
 
 	var ldata map[string]struct {
@@ -102,7 +115,7 @@ func get(url, selector string) (string, error) {
 func deferClose(err *error, f func() error) {
 	newErr := f()
 	if *err == nil {
-		*err = newErr
+		*err = errors.WithMessage(newErr, "problem closing")
 	}
 }
 
