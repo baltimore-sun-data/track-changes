@@ -36,14 +36,17 @@ func (a *apiResponse) Update(j job) error {
 		errStr  string
 		errTime *time.Time
 	)
+
+	a.Lock()
+	defer a.Unlock()
+
 	if err != nil {
 		errStr = err.Error()
 		errTime = &now
 		log.Printf("Error for %s: %v", j.id, err)
+		// Keep old content from being overwritten
+		txt = a.m[j.id].Content
 	}
-
-	a.Lock()
-	defer a.Unlock()
 
 	lastChange := a.m[j.id].LastChange
 	if a.m[j.id].Content != txt {
