@@ -10,16 +10,10 @@ type job struct {
 	id, url, selector, twitter string
 }
 
-type result struct {
-	job
-	next  time.Time
-	timer <-chan time.Time
-}
-
 func scheduler(jobs []job) {
 	var (
 		workCh   = make(chan job)
-		resultCh = make(chan result)
+		resultCh = make(chan job)
 		tq       = make(timeQueue, 0, len(jobs))
 	)
 
@@ -31,41 +25,39 @@ func scheduler(jobs []job) {
 		var (
 			workers chan job
 			j       job
-			timer   <-chan time.Time
 		)
 
 		if len(jobs) > 0 {
-			j = jobs[len(jobs)-1]
+			j = jobs[0]
 			workers = workCh
-		}
-
-		if len(tq) > 0 {
-			timer = tq[0].timer
 		}
 
 		select {
 		case workers <- j:
-			jobs = jobs[:len(jobs)-1]
-		case result := <-resultCh:
-			heap.Push(&tq, result)
-		case <-timer:
-			r := heap.Pop(&tq).(result)
-			jobs = append(jobs, r.job)
+			jobs = jobs[1:]
+		case j := <-resultCh:
+			tq.add(j)
+		case <-tq.timer():
+			jobs = append(jobs, tq.job())
 		}
 	}
 
 }
 
-func worker(workCh chan job, resultCh chan result) {
+func worker(workCh, resultCh chan job) {
 	for j := range workCh {
 		data.Update(j)
-
-		sleep := dSleep - dSleep/2 + time.Duration(rand.Intn(int(dSleep)))
-		resultCh <- result{j, time.Now().Add(sleep), time.After(sleep)}
+		resultCh <- j
 	}
 }
 
-type timeQueue []result
+type timedJob struct {
+	job
+	next  time.Time
+	timer <-chan time.Time
+}
+
+type timeQueue []timedJob
 
 func (tq timeQueue) Len() int { return len(tq) }
 
@@ -76,7 +68,7 @@ func (tq timeQueue) Less(i, j int) bool {
 func (tq timeQueue) Swap(i, j int) { tq[i], tq[j] = tq[j], tq[i] }
 
 func (tq *timeQueue) Push(x interface{}) {
-	*tq = append(*tq, x.(result))
+	*tq = append(*tq, x.(timedJob))
 }
 
 func (tq *timeQueue) Pop() interface{} {
@@ -85,4 +77,25 @@ func (tq *timeQueue) Pop() interface{} {
 	result := old[n]
 	*tq = old[0:n]
 	return result
+}
+
+// Returns the next timer to expire, if any
+func (tq timeQueue) timer() <-chan time.Time {
+	if len(tq) > 0 {
+		return tq[0].timer
+	}
+
+	return nil
+}
+
+func (tq *timeQueue) add(j job) {
+	sleep := dSleep - dSleep/2 + time.Duration(rand.Intn(int(dSleep)))
+	queueItem := timedJob{j, time.Now().Add(sleep), time.After(sleep)}
+	heap.Push(tq, queueItem)
+}
+
+// job pops the next job off the timequeue
+func (tq *timeQueue) job() job {
+	r := heap.Pop(tq).(timedJob)
+	return r.job
 }
