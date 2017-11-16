@@ -74,6 +74,14 @@ func start(fname string) ([]job, error) {
 }
 
 func get(url, selector string) (string, error) {
+	if selector == "twitter" {
+		return getTweet(url)
+	}
+
+	return getUrl(url, selector)
+}
+
+func getUrl(url, selector string) (string, error) {
 	sel, err := cascadia.Compile(selector)
 	if err != nil {
 		return "", errors.WithMessage(err, "bad selector")

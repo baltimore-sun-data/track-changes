@@ -2,16 +2,52 @@
 
 
 [[projects]]
+  name = "github.com/ChimeraCoder/anaconda"
+  packages = ["."]
+  revision = "0cb3e4c3ff8c6df5c73d5058c64e9c4eb6299c4b"
+  version = "v1.0.0"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/ChimeraCoder/tokenbucket"
+  packages = ["."]
+  revision = "c5a927568de7aad8a58127d80bcd36ca4e71e454"
+
+[[projects]]
   branch = "master"
   name = "github.com/andybalholm/cascadia"
   packages = ["."]
   revision = "349dd0209470eabd9514242c688c403c0926d266"
 
 [[projects]]
+  branch = "master"
+  name = "github.com/azr/backoff"
+  packages = ["."]
+  revision = "53511d3c733003985b0b76f733df1f4d0095ee6a"
+
+[[projects]]
   name = "github.com/carlmjohnson/gracefulserver"
   packages = ["."]
   revision = "4f17d637a64c97f19eb748cc9b53f6878e54441c"
   version = "v0.1.0"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/dustin/go-jsonpointer"
+  packages = ["."]
+  revision = "ba0abeacc3dcca5b9b20f31509c46794edbc9965"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/dustin/gojson"
+  packages = ["."]
+  revision = "2e71ec9dd5adce3b168cd0dbde03b5cc04951c30"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/garyburd/go-oauth"
+  packages = ["oauth"]
+  revision = "4cff9ef7b7003713efa191899dbaab8fa75e3e73"
 
 [[projects]]
   name = "github.com/pkg/errors"
@@ -22,12 +58,12 @@
 [[projects]]
   branch = "master"
   name = "golang.org/x/net"
-  packages = ["html","html/atom"]
+  packages = ["context","html","html/atom"]
   revision = "a337091b0525af65de94df2eb7e98bd9962dcbe2"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "a928ebe246ebb003b80f7fb5dfcdca4c18f94c7dbeee5f912cf320a23e4baf6a"
+  inputs-digest = "788380e40ca962b70e8e772f16f0e8c7f08a4a81aa0ab7a6184e6d41a4c51cf4"
   solver-name = "gps-cdcl"
   solver-version = 1
