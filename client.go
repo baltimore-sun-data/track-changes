@@ -10,14 +10,7 @@ import (
 )
 
 func get(url, selector string) (string, error) {
-	if selector == "twitter" {
-		return getTweet(url)
-	}
-
-	return getUrl(url, selector)
-}
-
-func getUrl(url, selector string) (string, error) {
+	// TODO: Can we cache these selectors?
 	sel, err := cascadia.Compile(selector)
 	if err != nil {
 		return "", errors.WithMessage(err, "bad selector")
@@ -47,11 +40,4 @@ func getUrl(url, selector string) (string, error) {
 	}
 
 	return strings.Join(ss, ","), err
-}
-
-func deferClose(err *error, f func() error) {
-	newErr := f()
-	if *err == nil {
-		*err = errors.WithMessage(newErr, "problem closing")
-	}
 }

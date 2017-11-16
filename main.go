@@ -18,7 +18,7 @@ var (
 	// Sleep time between checks
 	dSleep time.Duration
 	// apiResponse data shared between poller and server
-	data = apiResponse{m: make(map[string]jsonData)}
+	data = apiResponse{m: map[string]*jsonData{}}
 )
 
 func main() {
@@ -28,32 +28,39 @@ func main() {
 	flag.IntVar(&nWorkers, "workers", 4, "how many simultaneously downloading workers to launch")
 	flag.Parse()
 
-	if jobs, err := start(*fname); err != nil {
+	if err := start(*fname); err != nil {
 		fmt.Fprintf(os.Stderr, "Fatal error during start up: %v\n", err)
 		os.Exit(1)
-	} else {
-		go scheduler(jobs)
 	}
 
 	http.HandleFunc("/", handler)
 	gracefulserver.Serve(http.DefaultServeMux)
 }
 
-func start(fname string) ([]job, error) {
+func start(fname string) error {
 	f := os.Stdin
 	var err error
 	if fname != "-" {
 		f, err = os.Open(fname)
 		if err != nil {
-			return nil, errors.WithMessage(err, "could not open file")
+			return errors.WithMessage(err, "could not open file")
 		}
 		defer deferClose(&err, f.Close)
 	}
 
 	dec := json.NewDecoder(f)
 	if err = dec.Decode(&data); err != nil {
-		return nil, errors.WithMessage(err, "could not parse JSON file")
+		return errors.WithMessage(err, "could not parse JSON file")
 	}
 
-	return data.Jobs(), nil
+	go scheduler(data.Jobs())
+
+	return nil
+}
+
+func deferClose(err *error, f func() error) {
+	newErr := f()
+	if *err == nil {
+		*err = errors.WithMessage(newErr, "problem closing")
+	}
 }

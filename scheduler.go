@@ -7,7 +7,7 @@ import (
 )
 
 type job struct {
-	id, url, selector string
+	id, url, selector, twitter string
 }
 
 type result struct {

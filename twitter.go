@@ -21,6 +21,10 @@ func init() {
 }
 
 func getTweet(screenname string) (string, error) {
+	if screenname == "" {
+		return "", nil
+	}
+
 	v := url.Values{}
 	v.Set("screen_name", screenname)
 	v.Set("include_rts", "1")
