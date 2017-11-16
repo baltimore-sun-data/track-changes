@@ -50,23 +50,10 @@ func start(fname string) ([]job, error) {
 		defer deferClose(&err, f.Close)
 	}
 
-	var ldata map[string]struct {
-		Url, Selector string
-	}
-
 	dec := json.NewDecoder(f)
-	if err = dec.Decode(&ldata); err != nil {
+	if err = dec.Decode(&data); err != nil {
 		return nil, errors.WithMessage(err, "could not parse JSON file")
 	}
 
-	jobs := make([]job, 0, len(ldata))
-	for id, val := range ldata {
-		j := job{id, val.Url, val.Selector}
-		jobs = append(jobs, j)
-		if err = data.Update(j); err != nil {
-			return nil, err
-		}
-	}
-
-	return jobs, nil
+	return data.Jobs(), nil
 }

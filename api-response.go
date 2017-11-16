@@ -22,6 +22,11 @@ type apiResponse struct {
 	sync.RWMutex
 }
 
+type envelope struct {
+	Data  *map[string]jsonData `json:"data"`
+	Error interface{}          `json:"error,omitempty"`
+}
+
 func (a *apiResponse) Update(j job) error {
 	log.Printf("Updating %#v", j)
 
@@ -61,5 +66,25 @@ func (a *apiResponse) Update(j job) error {
 func (a *apiResponse) MarshalJSON() ([]byte, error) {
 	a.RLock()
 	defer a.RUnlock()
-	return json.Marshal(&a.m)
+	return json.Marshal(envelope{Data: &a.m})
+}
+
+func (a *apiResponse) UnmarshalJSON(b []byte) error {
+	a.Lock()
+	defer a.Unlock()
+
+	env := envelope{Data: &a.m}
+	return json.Unmarshal(b, &env)
+}
+
+func (a *apiResponse) Jobs() []job {
+	a.RLock()
+	defer a.RUnlock()
+
+	jobs := make([]job, 0, len(a.m))
+	for id, val := range a.m {
+		jobs = append(jobs, job{id, val.Url, val.Selector})
+	}
+
+	return jobs
 }
