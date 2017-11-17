@@ -15,3 +15,5 @@
 
 # Dep
 vendor
+assets
+node_modules

@@ -1,0 +1,47 @@
+{
+  "name": "track-changes",
+  "version": "1.0.0",
+  "description": "Dashboard for tracking changes to many websites at once",
+  "main": "index.js",
+  "scripts": {
+    "build": "webpack --progress -p",
+    "format": "npm run format:eslint && npm run format:prettier",
+    "format:eslint": "eslint --fix src",
+    "format:prettier": "prettier --write src/**/*.{js,json,css}",
+    "precommit": "lint-staged",
+    "test": "npm run test:prettier && npm run test:lint",
+    "test:lint": "eslint 'src/**/*.js'",
+    "test:prettier": "prettier -l src/**/*.{js,json,css}",
+    "watch": "webpack --progress --watch"
+  },
+  "lint-staged": {
+    "*.{js,json,css}": ["prettier --write", "git add"]
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/baltimore-sun-data/track-changes.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/baltimore-sun-data/track-changes/issues"
+  },
+  "homepage": "https://github.com/baltimore-sun-data/track-changes#readme",
+  "devDependencies": {
+    "babel-core": "^6.26.0",
+    "babel-loader": "^7.1.2",
+    "babel-preset-env": "^1.6.1",
+    "eslint": "^4.11.0",
+    "eslint-config-prettier": "^2.7.0",
+    "eslint-config-standard": "^10.2.1",
+    "eslint-plugin-import": "^2.8.0",
+    "eslint-plugin-node": "^5.2.1",
+    "eslint-plugin-prettier": "^2.3.1",
+    "eslint-plugin-promise": "^3.6.0",
+    "eslint-plugin-standard": "^3.0.1",
+    "husky": "^0.14.3",
+    "lint-staged": "^5.0.0",
+    "prettier": "^1.8.2",
+    "webpack": "^3.8.1"
+  }
+}
