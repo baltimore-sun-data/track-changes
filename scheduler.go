@@ -7,7 +7,8 @@ import (
 )
 
 type job struct {
-	id, url, selector, twitter string
+	data                   *jsonData
+	url, selector, twitter string
 }
 
 func scheduler(jobs []job) {

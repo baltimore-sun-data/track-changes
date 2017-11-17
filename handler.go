@@ -7,11 +7,6 @@ import (
 )
 
 func handler(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path != "/" {
-		http.NotFound(w, r)
-		return
-	}
-
 	e := json.NewEncoder(w)
 	data.RLock()
 	defer data.RUnlock()

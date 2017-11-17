@@ -18,7 +18,7 @@ var (
 	// Sleep time between checks
 	dSleep time.Duration
 	// apiResponse data shared between poller and server
-	data = apiResponse{m: map[string]*jsonData{}}
+	data apiResponse
 )
 
 func main() {
@@ -33,7 +33,8 @@ func main() {
 		os.Exit(1)
 	}
 
-	http.HandleFunc("/", handler)
+	http.Handle("/", http.FileServer(http.Dir("assets")))
+	http.HandleFunc("/api", handler)
 	gracefulserver.Serve(http.DefaultServeMux)
 }
 

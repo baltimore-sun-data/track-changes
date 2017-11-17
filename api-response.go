@@ -8,6 +8,7 @@ import (
 )
 
 type jsonData struct {
+	Id           string     `json:"id"`
 	HomePageUrl  string     `json:"homepage_url"`
 	Twitter      string     `json:"twitter_screenname"`
 	Tweet        string     `json:"last_tweet"`
@@ -22,13 +23,14 @@ type jsonData struct {
 }
 
 type apiResponse struct {
-	m map[string]*jsonData
+	data []jsonData
 	sync.RWMutex
 }
 
 type envelope struct {
-	Data  map[string]*jsonData `json:"data"`
-	Error interface{}          `json:"error,omitempty"`
+	Data  *[]jsonData `json:"data"`
+	Meta  interface{} `json:"meta"`
+	Error interface{} `json:"error,omitempty"`
 }
 
 func (a *apiResponse) Update(j job) {
@@ -43,44 +45,49 @@ func (a *apiResponse) Update(j job) {
 	defer a.Unlock()
 
 	if err != nil || err2 != nil {
-		log.Printf("Error for %s: %v", j.id, err)
-		a.m[j.id].LastError = &now
+		log.Printf("Error for %s: %v", j.data.Id, err)
+		j.data.LastError = &now
 		// Prefer to record web errors over others
 		if err != nil {
-			a.m[j.id].Err = err.Error()
+			j.data.Err = err.Error()
 		} else {
-			a.m[j.id].Err = err2.Error()
+			j.data.Err = err2.Error()
 		}
 	} else {
-		a.m[j.id].LastError = nil
-		a.m[j.id].Err = ""
+		j.data.LastError = nil
+		j.data.Err = ""
 	}
 
 	// Keep old content from being overwritten with err text
-	if err == nil && a.m[j.id].Content != txt {
-		a.m[j.id].Content = txt
-		a.m[j.id].LastChange = now
+	if err == nil && j.data.Content != txt {
+		j.data.Content = txt
+		j.data.LastChange = now
 	}
 
-	if err2 == nil && a.m[j.id].Tweet != tweet {
-		a.m[j.id].Tweet = tweet
-		a.m[j.id].LastChange = now
+	if err2 == nil && j.data.Tweet != tweet {
+		j.data.Tweet = tweet
+		j.data.LastChange = now
 	}
 
-	a.m[j.id].LastAccessed = now
+	j.data.LastAccessed = now
 }
 
 func (a *apiResponse) MarshalJSON() ([]byte, error) {
 	a.RLock()
 	defer a.RUnlock()
-	return json.Marshal(envelope{Data: a.m})
+	return json.Marshal(envelope{
+		Data: &a.data,
+		Meta: struct {
+			PollInterval time.Duration `json:"poll_interval"`
+		}{dSleep},
+	})
 }
 
 func (a *apiResponse) UnmarshalJSON(b []byte) error {
 	a.Lock()
 	defer a.Unlock()
 
-	env := envelope{Data: a.m}
+	env := envelope{Data: &a.data}
 	return json.Unmarshal(b, &env)
 }
 
@@ -88,9 +95,10 @@ func (a *apiResponse) Jobs() []job {
 	a.RLock()
 	defer a.RUnlock()
 
-	jobs := make([]job, 0, len(a.m))
-	for id, val := range a.m {
-		jobs = append(jobs, job{id, val.Url, val.Selector, val.Twitter})
+	jobs := make([]job, 0, len(a.data))
+	for i := range a.data {
+		val := &a.data[i]
+		jobs = append(jobs, job{val, val.Url, val.Selector, val.Twitter})
 	}
 
 	return jobs
