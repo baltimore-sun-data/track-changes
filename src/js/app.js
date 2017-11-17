@@ -1,4 +1,5 @@
 import tinysort from "tinysort";
+import { html } from "es6-string-html-template";
 
 const table = document.getElementById("xtable");
 const tableHead = table.querySelector("thead");
@@ -34,7 +35,7 @@ const updateData = e => {
       body.data.forEach(item => {
         tableBody.insertAdjacentHTML(
           "beforeend",
-          `
+          html`
       <tr data-row-id="${item.id}">
         <td><a href="${item.homepage_url}">${item.display_name}</a></td>
         <td><a href="${item.url}">${item.content}</a></td>
