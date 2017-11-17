@@ -29,11 +29,14 @@ sortableTh.forEach(th =>
   })
 );
 
-const updateData = e => {
+function updateData() {
   fetch("/api")
     .then(rsp => rsp.json())
-    .then(body =>
-      body.data.forEach(item => {
+    .then(body => {
+      // TODO: Preserve sort order
+      tableBody.querySelectorAll("tr").forEach(el => el.remove());
+
+      body.data.forEach(item =>
         tableBody.insertAdjacentHTML(
           "beforeend",
           html`
@@ -55,9 +58,13 @@ const updateData = e => {
         </td>
       </tr>
     `
-        );
-      })
-    );
-};
+        )
+      );
+
+      // Update at the average time between changes for items
+      window.next_poll = body.meta.poll_interval / body.data.length;
+      window.setTimeout(updateData, window.next_poll);
+    });
+}
 
 window.addEventListener("load", updateData);

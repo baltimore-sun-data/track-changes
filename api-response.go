@@ -79,7 +79,7 @@ func (a *apiResponse) MarshalJSON() ([]byte, error) {
 		Data: &a.data,
 		Meta: struct {
 			PollInterval time.Duration `json:"poll_interval"`
-		}{dSleep},
+		}{dSleep / time.Millisecond},
 	})
 }
 
