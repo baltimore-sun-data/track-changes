@@ -6,20 +6,29 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 <body>
-        <table id="xtable">
-         <thead>
-          <tr>
-           <th>Name</th>
-           <th>Content</th>
-           <th>Tweet</th>
-           <th class="sortable">Last Change</th>
-           <th class="sortable">Last Check</th>
-           <th>Errors</th>
-          </tr>
-         </thead>
-         <tbody>
+    <h1>Track Changes</h1>
 
-         </tbody>
-        </table>
-    </body>
+    <div class="refresh">
+      <span>Last refresh:</span>
+      <span class="refresh-time">None</span>
+      <button class="refresh-btn">Refresh</button>
+    </div>
+    <div id="error"></div>
+
+    <table id="xtable">
+     <thead>
+      <tr>
+       <th class="sortable">Name</th>
+       <th>Content</th>
+       <th>Tweet</th>
+       <th class="sortable">Last Change</th>
+       <th class="sortable">Last Check</th>
+       <th class="sortable">Errors</th>
+      </tr>
+     </thead>
+     <tbody>
+      <tr><td rowspan="7">Loading...</td></tr>
+     </tbody>
+    </table>
+  </body>
 </html>
