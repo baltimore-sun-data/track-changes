@@ -4,7 +4,7 @@
   "description": "Dashboard for tracking changes to many websites at once",
   "main": "index.js",
   "scripts": {
-    "build": "webpack --progress -p",
+    "build": "webpack --progress",
     "format": "npm run format:eslint && npm run format:prettier",
     "format:eslint": "eslint --fix src",
     "format:prettier": "prettier --write src/**/*.{js,json,css}",
@@ -30,7 +30,9 @@
   "devDependencies": {
     "babel-core": "^6.26.0",
     "babel-loader": "^7.1.2",
+    "babel-minify-webpack-plugin": "^0.2.0",
     "babel-preset-env": "^1.6.1",
+    "babel-preset-es2016": "^6.24.1",
     "clean-webpack-plugin": "^0.1.17",
     "eslint": "^4.11.0",
     "eslint-config-prettier": "^2.7.0",

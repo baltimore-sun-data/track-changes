@@ -1,6 +1,7 @@
 const CleanWebpackPlugin = require("clean-webpack-plugin");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const ManifestPlugin = require("webpack-manifest-plugin");
+const MinifyPlugin = require("babel-minify-webpack-plugin");
 const path = require("path");
 const webpack = require("webpack");
 
@@ -18,7 +19,7 @@ module.exports = {
         use: {
           loader: "babel-loader",
           options: {
-            presets: ["env"]
+            presets: ["es2016"]
           }
         }
       }
@@ -31,6 +32,7 @@ module.exports = {
       filename: "index.html",
       template: "src/index.html"
     }),
+    new MinifyPlugin(),
     new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/)
   ]
 };
