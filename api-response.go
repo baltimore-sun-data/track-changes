@@ -91,14 +91,14 @@ func (a *apiResponse) UnmarshalJSON(b []byte) error {
 	return json.Unmarshal(b, &env)
 }
 
-func (a *apiResponse) Jobs() []job {
+func (a *apiResponse) jobs() *jobQueue {
 	a.RLock()
 	defer a.RUnlock()
 
-	jobs := make([]job, 0, len(a.data))
+	jobs := NewJobQueue(len(a.data))
 	for i := range a.data {
 		val := &a.data[i]
-		jobs = append(jobs, job{val, val.Url, val.Selector, val.Twitter})
+		jobs.push(job{val, val.Url, val.Selector, val.Twitter})
 	}
 
 	return jobs

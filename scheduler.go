@@ -11,11 +11,48 @@ type job struct {
 	url, selector, twitter string
 }
 
-func scheduler(jobs []job) {
+type jobQueue struct {
+	head, length int
+	jobs         []job
+}
+
+func NewJobQueue(capacity int) *jobQueue {
+	return &jobQueue{0, 0, make([]job, capacity)}
+}
+
+func (jq *jobQueue) push(nj job) {
+	if len(jq.jobs) <= jq.length {
+		jq.jobs = append(jq.jobs[jq.head:], append(jq.jobs[:jq.head:jq.head], nj)...)
+		jq.jobs = jq.jobs[:cap(jq.jobs)]
+		jq.head = 0
+		jq.length++
+	} else {
+		jq.jobs[(jq.head+jq.length)%len(jq.jobs)] = nj
+		jq.length++
+	}
+}
+
+func (jq *jobQueue) shift() bool {
+	if jq.length < 1 {
+		return false
+	}
+	jq.head = (jq.head + 1) % len(jq.jobs)
+	jq.length--
+	return true
+}
+
+func (jq jobQueue) first() job {
+	if jq.length < 1 {
+		return job{}
+	}
+	return jq.jobs[jq.head]
+}
+
+func (jq *jobQueue) start() {
 	var (
 		workCh   = make(chan job)
 		resultCh = make(chan job)
-		tq       = make(timeQueue, 0, len(jobs))
+		tq       = make(timeQueue, 0, jq.length)
 	)
 
 	for i := 0; i < nWorkers; i++ {
@@ -23,23 +60,18 @@ func scheduler(jobs []job) {
 	}
 
 	for {
-		var (
-			workers chan job
-			j       job
-		)
-
-		if len(jobs) > 0 {
-			j = jobs[0]
-			workers = workCh
+		workers := workCh
+		if jq.length < 1 {
+			workers = nil
 		}
 
 		select {
-		case workers <- j:
-			jobs = jobs[1:]
+		case workers <- jq.first():
+			jq.shift()
 		case j := <-resultCh:
 			tq.add(j)
 		case <-tq.timer():
-			jobs = append(jobs, tq.job())
+			jq.push(tq.popJob())
 		}
 	}
 
@@ -95,8 +127,8 @@ func (tq *timeQueue) add(j job) {
 	heap.Push(tq, queueItem)
 }
 
-// job pops the next job off the timequeue
-func (tq *timeQueue) job() job {
+// popJob removes and returns the next job in the timequeue
+func (tq *timeQueue) popJob() job {
 	r := heap.Pop(tq).(timedJob)
 	return r.job
 }

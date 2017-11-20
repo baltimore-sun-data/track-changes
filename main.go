@@ -54,7 +54,7 @@ func start(fname string) error {
 		return errors.WithMessage(err, "could not parse JSON file")
 	}
 
-	go scheduler(data.Jobs())
+	go data.jobs().start()
 
 	return nil
 }
