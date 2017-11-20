@@ -22,6 +22,9 @@ const error = document.getElementById("error");
 const refresh = document.querySelectorAll(".refresh-time");
 const refreshBtn = document.querySelectorAll(".refresh-btn");
 
+// Global to preserve sorting between refreshes
+let sortOptions = {};
+
 // Set up data-indexes for later convenience
 tableHead.querySelectorAll("th").forEach((el, i) => {
   el.setAttribute("data-index", i + 1);
@@ -34,11 +37,13 @@ sortableTh.addEventListener("click", e => {
   const order = isAscending ? "desc" : "asc";
   tableHeader.setAttribute("data-order", order);
 
-  tinysort(tableBody.querySelectorAll("tr"), {
+  sortOptions = {
     selector: `td:nth-child(${tableHeaderIndex})`,
     data: "sort",
     order: order
-  });
+  };
+
+  tinysort(tableBody.querySelectorAll("tr"), sortOptions);
 });
 
 async function updateData() {
@@ -97,6 +102,8 @@ async function updateData() {
 `
       )
     );
+    tinysort(tableBody.querySelectorAll("tr"), sortOptions);
+
     // Update at the average time between changes for items
     window.next_poll = body.meta.poll_interval / body.data.length;
   } catch (e) {
