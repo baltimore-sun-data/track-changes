@@ -1,3 +1,5 @@
+import "../scss/app.scss";
+
 import { html } from "es6-string-html-template";
 import moment from "moment";
 import tinysort from "tinysort";

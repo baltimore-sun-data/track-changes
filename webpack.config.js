@@ -1,12 +1,18 @@
 const CleanWebpackPlugin = require("clean-webpack-plugin");
+const ExtractTextPlugin = require("extract-text-webpack-plugin");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const ManifestPlugin = require("webpack-manifest-plugin");
 const MinifyPlugin = require("babel-minify-webpack-plugin");
 const path = require("path");
 const webpack = require("webpack");
 
+const extractSass = new ExtractTextPlugin({
+  filename: "css/[name].[hash].css"
+});
+
 module.exports = {
-  entry: "./src/js/app.js",
+  context: path.resolve(__dirname, "src"),
+  entry: "./js/app.js",
   output: {
     filename: "js/[name].[hash].js",
     path: path.resolve(__dirname, "assets")
@@ -22,6 +28,32 @@ module.exports = {
             presets: ["es2016"]
           }
         }
+      },
+      {
+        test: /\.scss$/,
+        use: extractSass.extract({
+          use: [
+            {
+              loader: "css-loader"
+            },
+            {
+              loader: "postcss-loader",
+              options: {
+                ident: "postcss",
+                plugins: loader => [
+                  require("postcss-import")({ root: loader.resourcePath }),
+                  require("autoprefixer")(),
+                  require("cssnano")()
+                ]
+              }
+            },
+            {
+              loader: "sass-loader"
+            }
+          ],
+          // use style-loader in development
+          fallback: "style-loader"
+        })
       }
     ]
   },
@@ -30,9 +62,10 @@ module.exports = {
     new ManifestPlugin(),
     new HtmlWebpackPlugin({
       filename: "index.html",
-      template: "src/index.html"
+      template: "index.html"
     }),
     new MinifyPlugin(),
-    new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/)
+    new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/),
+    extractSass
   ]
 };
