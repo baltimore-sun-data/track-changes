@@ -72,13 +72,14 @@ async function updateData() {
         html`
   <tr data-row-id="${item.id}">
     <td data-sort="${item.display_name}">
-      <a href="${item.homepage_url}">${item.display_name}</a>
+      <a href="${item.homepage_url}" target="_blank">${item.display_name}</a>
     </td>
-    <td><a href="${item.url}">${item.content}</a></td>
+    <td><a href="${item.url}" target="_blank">${item.content}</a></td>
     <td title="${item.twitter_screenname}">
-      <a href="https://twitter.com/${item.twitter_screenname}">${
-          item.last_tweet
-        }</a>
+      <a
+        href="https://twitter.com/${item.twitter_screenname}"
+        target="_blank"
+      >${item.last_tweet}</a>
     </td>
     <td
       data-sort="${item.last_change}"
