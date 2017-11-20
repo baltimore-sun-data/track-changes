@@ -15,7 +15,6 @@ window.next_poll = 5 * 60 * 1000; // 5 minute default
 const table = document.getElementById("xtable");
 const tableHead = table.querySelector("thead");
 const sortableTh = tableHead.querySelectorAll("th.sortable");
-const tableBody = table.querySelector("tbody");
 
 const error = document.getElementById("error");
 
@@ -43,7 +42,7 @@ sortableTh.addEventListener("click", e => {
     order: order
   };
 
-  tinysort(tableBody.querySelectorAll("tr"), sortOptions);
+  tinysort(table.querySelectorAll("tbody tr"), sortOptions);
 });
 
 async function updateData() {
@@ -64,8 +63,8 @@ async function updateData() {
       throw new Error("No data returned");
     }
 
-    // TODO: Preserve sort order
-    tableBody.querySelectorAll("tr").forEach(el => el.remove());
+    // New table contents
+    let tableBody = document.createElement("tbody");
 
     body.data.forEach(item =>
       tableBody.insertAdjacentHTML(
@@ -103,6 +102,10 @@ async function updateData() {
       )
     );
     tinysort(tableBody.querySelectorAll("tr"), sortOptions);
+
+    // Swap in the new table contents
+    let oldBody = table.querySelector("tbody");
+    oldBody.parentNode.replaceChild(tableBody, oldBody);
 
     // Update at the average time between changes for items
     window.next_poll = body.meta.poll_interval / body.data.length;
