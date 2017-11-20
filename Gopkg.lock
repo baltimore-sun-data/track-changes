@@ -2,6 +2,12 @@
 
 
 [[projects]]
+  name = "cloud.google.com/go"
+  packages = ["compute/metadata"]
+  revision = "2d3a6656c17a60b0815b7e06ab0be04eacb6e613"
+  version = "v0.16.0"
+
+[[projects]]
   name = "github.com/ChimeraCoder/anaconda"
   packages = ["."]
   revision = "0cb3e4c3ff8c6df5c73d5058c64e9c4eb6299c4b"
@@ -50,6 +56,12 @@
   revision = "4cff9ef7b7003713efa191899dbaab8fa75e3e73"
 
 [[projects]]
+  branch = "master"
+  name = "github.com/golang/protobuf"
+  packages = ["proto"]
+  revision = "1e59b77b52bf8e4b449a57e6f79f21226d571845"
+
+[[projects]]
   name = "github.com/pkg/errors"
   packages = ["."]
   revision = "645ef00459ed84a119197bfb8d8205042c6df63d"
@@ -58,12 +70,30 @@
 [[projects]]
   branch = "master"
   name = "golang.org/x/net"
-  packages = ["context","html","html/atom"]
+  packages = ["context","context/ctxhttp","html","html/atom"]
   revision = "a337091b0525af65de94df2eb7e98bd9962dcbe2"
+
+[[projects]]
+  branch = "master"
+  name = "golang.org/x/oauth2"
+  packages = [".","google","internal","jws","jwt"]
+  revision = "f95fa95eaa936d9d87489b15d1d18b97c1ba9c28"
+
+[[projects]]
+  name = "google.golang.org/appengine"
+  packages = [".","internal","internal/app_identity","internal/base","internal/datastore","internal/log","internal/modules","internal/remote_api","internal/urlfetch","urlfetch"]
+  revision = "150dc57a1b433e64154302bdc40b6bb8aefa313a"
+  version = "v1.0.0"
+
+[[projects]]
+  branch = "v2"
+  name = "gopkg.in/Iwark/spreadsheet.v2"
+  packages = ["."]
+  revision = "29680c88e31da35d3fa54943f11b6a926c81d8f1"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "788380e40ca962b70e8e772f16f0e8c7f08a4a81aa0ab7a6184e6d41a4c51cf4"
+  inputs-digest = "7b81904a241bcd7cd4c083af8142aee95da7833506978e7d17c50b241437c284"
   solver-name = "gps-cdcl"
   solver-version = 1

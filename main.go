@@ -22,23 +22,30 @@ var (
 )
 
 func main() {
-	fname := flag.String("file", "-", "file to open for jobs or '-' for stdin")
+	gdoc := flag.String("sheet", "", "Google Sheets ID to use for jobs")
+	fname := flag.String("file", "-", "JSON file to open for jobs or '-' for stdin")
 	flag.DurationVar(&dSleep, "poll", 5*time.Minute, "how often to poll for changes")
 	flag.DurationVar(&http.DefaultClient.Timeout, "timeout", 10*time.Second, "how long to wait for a slow server")
 	flag.IntVar(&nWorkers, "workers", 4, "how many simultaneously downloading workers to launch")
 	flag.Parse()
 
-	if err := start(*fname); err != nil {
+	if err := start(*gdoc, *fname); err != nil {
 		fmt.Fprintf(os.Stderr, "Fatal error during start up: %v\n", err)
 		os.Exit(1)
 	}
+
+	go data.jobs().start()
 
 	http.Handle("/", http.FileServer(http.Dir("assets")))
 	http.HandleFunc("/api", handler)
 	gracefulserver.Serve(http.DefaultServeMux)
 }
 
-func start(fname string) error {
+func start(gdoc, fname string) error {
+	if gdoc != "" {
+		return fromSheet(gdoc)
+	}
+
 	f := os.Stdin
 	var err error
 	if fname != "-" {
@@ -53,8 +60,6 @@ func start(fname string) error {
 	if err = dec.Decode(&data); err != nil {
 		return errors.WithMessage(err, "could not parse JSON file")
 	}
-
-	go data.jobs().start()
 
 	return nil
 }
