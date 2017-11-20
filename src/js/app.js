@@ -79,12 +79,12 @@ async function updateData() {
     <td
       data-sort="${item.last_change}"
       title="${moment(item.last_change).format("llll")}">
-      ${moment(item.last_change).fromNow()}
+      ${item.last_change ? moment(item.last_change).fromNow() : ""}
     </td>
     <td
       data-sort="${item.last_accessed}"
       title="${moment(item.last_accessed).format("llll")}">
-      ${moment(item.last_accessed).fromNow()}
+      ${item.last_accessed ? moment(item.last_accessed).fromNow() : ""}
     </td>
     <td data-sort="${item.last_error}">
       ${

@@ -16,8 +16,8 @@ type jsonData struct {
 	Url          string     `json:"url"`
 	Selector     string     `json:"selector"`
 	Content      string     `json:"content"`
-	LastAccessed time.Time  `json:"last_accessed"`
-	LastChange   time.Time  `json:"last_change"`
+	LastAccessed *time.Time `json:"last_accessed,omitempty"`
+	LastChange   *time.Time `json:"last_change,omitempty"`
 	Err          string     `json:"error,omitempty"`
 	LastError    *time.Time `json:"last_error,omitempty"`
 }
@@ -61,15 +61,15 @@ func (a *apiResponse) Update(j job) {
 	// Keep old content from being overwritten with err text
 	if err == nil && j.data.Content != txt {
 		j.data.Content = txt
-		j.data.LastChange = now
+		j.data.LastChange = &now
 	}
 
 	if err2 == nil && j.data.Tweet != tweet {
 		j.data.Tweet = tweet
-		j.data.LastChange = now
+		j.data.LastChange = &now
 	}
 
-	j.data.LastAccessed = now
+	j.data.LastAccessed = &now
 }
 
 func (a *apiResponse) MarshalJSON() ([]byte, error) {
