@@ -5,10 +5,13 @@ $highlight-text-color: #339;
 $highlight-bg-color: #d0dafd;
 $plain-text-color: #669;
 
+html {
+  font-size: 16px;
+}
+
 body {
   box-sizing: border-box;
   font-family: sans-serif;
-  font-size: 16px;
   margin: 0;
   min-height: 100vh;
   min-width: 100vw;
@@ -46,16 +49,6 @@ a {
     padding: 1rem;
     text-overflow: ellipsis;
     white-space: nowrap;
-
-    &.table-time {
-      font-size: 0.75rem;
-      width: 7rem;
-    }
-
-    &.table-error {
-      font-size: 0.75rem;
-      width: 4rem;
-    }
   }
 
   tr:hover td {
@@ -63,6 +56,16 @@ a {
     color: $highlight-text-color;
     overflow: visible;
     white-space: normal;
+  }
+
+  .table-time {
+    font-size: 0.75rem;
+    width: 112px;
+  }
+
+  .table-error {
+    font-size: 0.75rem;
+    width: 4rem;
   }
 
   .sort-col {
