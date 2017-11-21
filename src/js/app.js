@@ -34,22 +34,36 @@ tableHead.querySelectorAll("th").forEach((el, i) => {
 sortableTh.addEventListener("click", e => {
   const tableHeader = e.target;
   const tableHeaderIndex = tableHeader.getAttribute("data-index");
-  const isAscending = tableHeader.getAttribute("data-order") === "asc";
-  const order = isAscending ? "desc" : "asc";
+  const isDescending = tableHeader.getAttribute("data-order") === "desc";
+  const order = isDescending ? "asc" : "desc";
   tableHeader.setAttribute("data-order", order);
 
+  // Change highlight
+  let selector = `td:nth-child(${tableHeaderIndex})`;
+
   sortOptions = {
-    selector: `td:nth-child(${tableHeaderIndex})`,
+    selector: selector,
     data: "sort",
     order: order
   };
 
+  table
+    .querySelectorAll(".sort-col")
+    .forEach(el => el.classList.remove("sort-col"));
+  tableHeader.classList.add("sort-col");
+  table.querySelectorAll(selector).forEach(el => el.classList.add("sort-col"));
   tinysort(table.querySelectorAll("tbody tr"), sortOptions);
 });
 
 async function updateData() {
   try {
-    const rsp = await fetch(API_URL);
+    let rsp;
+
+    try {
+      rsp = await fetch(API_URL);
+    } catch (e) {
+      throw new Error(`Problem connecting to API: ${e.message}`);
+    }
 
     refresh.forEach(el => {
       el.textContent = moment().format("LTS");
@@ -84,16 +98,20 @@ async function updateData() {
       >${item.last_tweet}</a>
     </td>
     <td
+      class="table-time"
       data-sort="${item.last_change}"
       title="${moment(item.last_change).format("llll")}">
       ${item.last_change ? moment(item.last_change).fromNow() : ""}
     </td>
     <td
+      class="table-time"
       data-sort="${item.last_accessed}"
       title="${moment(item.last_accessed).format("llll")}">
       ${item.last_accessed ? moment(item.last_accessed).fromNow() : ""}
     </td>
-    <td data-sort="${item.last_error}">
+    <td
+      class="table-error"
+      data-sort="${item.last_error}">
       ${
         item.error
           ? item.error + " at " + moment(item.last_error).fromNow()
@@ -104,15 +122,22 @@ async function updateData() {
 `
       )
     );
+
+    tableBody
+      .querySelectorAll(sortOptions.selector)
+      .forEach(el => el.classList.add("sort-col"));
     tinysort(tableBody.querySelectorAll("tr"), sortOptions);
 
     // Swap in the new table contents
     let oldBody = table.querySelector("tbody");
     oldBody.parentNode.replaceChild(tableBody, oldBody);
 
+    error.classList.add("display-none");
+
     // Update at the average time between changes for items
     window.next_poll = body.meta.poll_interval / body.data.length;
   } catch (e) {
+    error.classList.remove("display-none");
     error.textContent = `Error returning data: ${e.message}`;
   } finally {
     window.setTimeout(updateData, window.next_poll);

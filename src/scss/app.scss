@@ -1,3 +1,10 @@
+$border-color: #69c;
+$light-bg-color: #e8edff;
+$em-text-color: #039;
+$highlight-text-color: #339;
+$highlight-bg-color: #d0dafd;
+$plain-text-color: #669;
+
 body {
   box-sizing: border-box;
   font-family: sans-serif;
@@ -6,4 +13,87 @@ body {
   min-height: 100vh;
   min-width: 100vw;
   padding: 1rem;
+}
+
+a {
+  color: inherit;
+}
+
+#xtable {
+  border-collapse: collapse;
+  border: 1px solid $border-color;
+  text-align: left;
+  width: 100%;
+
+  th {
+    color: $em-text-color;
+    font-size: 14px;
+    font-weight: normal;
+    padding: 15px 10px 10px 10px;
+    text-align: center;
+  }
+
+  tbody {
+    background: $light-bg-color;
+  }
+
+  td {
+    border-top: 1px dashed #fff;
+    color: $plain-text-color;
+    max-height: 1rem;
+    max-width: 0;
+    overflow: hidden;
+    padding: 1rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    &.table-time {
+      font-size: 0.75rem;
+      width: 7rem;
+    }
+
+    &.table-error {
+      width: 4rem;
+    }
+  }
+
+  tr:hover td {
+    background: $highlight-bg-color;
+    color: $highlight-text-color;
+    overflow: visible;
+    white-space: normal;
+  }
+
+  .sort-col {
+    background-color: $highlight-bg-color;
+    color: $highlight-text-color;
+
+    &[data-order="asc"]::after {
+      content: " ↑";
+    }
+
+    &[data-order="desc"]::after {
+      content: " ↓";
+    }
+  }
+
+  .sortable {
+    cursor: pointer;
+  }
+}
+
+.refresh {
+  float: right;
+}
+
+#error {
+  background-color: salmon;
+  color: #fff;
+  font-weight: bold;
+  margin: 1rem 0;
+  padding: 1rem;
+}
+
+.display-none {
+  display: none;
 }

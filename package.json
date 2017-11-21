@@ -7,15 +7,15 @@
     "build": "webpack --progress",
     "format": "npm run format:eslint && npm run format:prettier",
     "format:eslint": "eslint --fix src",
-    "format:prettier": "prettier --write src/**/*.{js,json,css}",
+    "format:prettier": "prettier --write src/**/*.{js,json,scss}",
     "precommit": "lint-staged",
     "test": "npm run test:prettier && npm run test:lint",
     "test:lint": "eslint 'src/**/*.js'",
-    "test:prettier": "prettier -l src/**/*.{js,json,css}",
+    "test:prettier": "prettier -l src/**/*.{js,json,scss}",
     "watch": "webpack --progress --watch"
   },
   "lint-staged": {
-    "*.{js,json,css,scss}": ["prettier --write", "git add"]
+    "*.{js,json,scss}": ["prettier --write", "git add"]
   },
   "repository": {
     "type": "git",
