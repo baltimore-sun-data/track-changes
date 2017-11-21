@@ -139,8 +139,8 @@ async function updateData() {
 
     error.classList.add("display-none");
 
-    // Update at the average time between changes for items
-    window.next_poll = body.meta.poll_interval / body.data.length;
+    // Update a bit more frequently than the poller
+    window.next_poll = body.meta.poll_interval / 4;
   } catch (e) {
     error.classList.remove("display-none");
     error.textContent = `Error returning data: ${e.message}`;
