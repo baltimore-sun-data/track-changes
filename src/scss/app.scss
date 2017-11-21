@@ -54,7 +54,7 @@ a {
   tr:hover td {
     background: $highlight-bg-color;
     color: $highlight-text-color;
-    overflow: visible;
+    max-height: auto;
     white-space: normal;
   }
 
