@@ -117,6 +117,11 @@ async function updateData() {
           ? item.error + " at " + moment(item.last_error).fromNow()
           : ""
       }
+      ${
+        item.twitter_error
+          ? item.twitter_error + " at " + moment(item.last_error).fromNow()
+          : ""
+      }
     </td>
   </tr>
 `

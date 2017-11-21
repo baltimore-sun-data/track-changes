@@ -10,10 +10,6 @@ import (
 )
 
 func get(url, selector string) (string, error) {
-	if url == "" || selector == "" {
-		return "", nil
-	}
-
 	// TODO: Can we cache these selectors?
 	sel, err := cascadia.Compile(selector)
 	if err != nil {

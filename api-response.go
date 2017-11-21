@@ -19,6 +19,7 @@ type jsonData struct {
 	LastAccessed *time.Time `json:"last_accessed,omitempty"`
 	LastChange   *time.Time `json:"last_change,omitempty"`
 	Err          string     `json:"error,omitempty"`
+	TwitterErr   string     `json:"twitter_error,omitempty"`
 	LastError    *time.Time `json:"last_error,omitempty"`
 }
 
@@ -35,41 +36,56 @@ type envelope struct {
 
 func (a *apiResponse) Update(j job) {
 	log.Printf("Updating %#v", j)
-	now := time.Now()
 
+	if j.url != "" {
+		a.updateWeb(j)
+	}
+
+	if j.twitter != "" {
+		a.updateTwitter(j)
+	}
+}
+
+func (a *apiResponse) updateWeb(j job) {
+	now := time.Now()
 	txt, err := get(j.url, j.selector)
-	// This could be done in parallel, but it's not worth the effort
-	tweet, err2 := getTweet(j.twitter)
 
 	a.Lock()
 	defer a.Unlock()
 
-	if err != nil || err2 != nil {
+	j.data.LastAccessed = &now
+	if err != nil {
 		log.Printf("Error for %s: %v", j.data.Id, err)
 		j.data.LastError = &now
-		// Prefer to record web errors over others
-		if err != nil {
-			j.data.Err = err.Error()
-		} else {
-			j.data.Err = err2.Error()
-		}
+		j.data.Err = err.Error()
 	} else {
-		j.data.LastError = nil
 		j.data.Err = ""
+		if j.data.Content != txt {
+			j.data.Content = txt
+			j.data.LastChange = &now
+		}
 	}
+}
 
-	// Keep old content from being overwritten with err text
-	if err == nil && j.data.Content != txt {
-		j.data.Content = txt
-		j.data.LastChange = &now
-	}
+func (a *apiResponse) updateTwitter(j job) {
+	now := time.Now()
+	tweet, err := getTweet(j.twitter)
 
-	if err2 == nil && j.data.Tweet != tweet {
-		j.data.Tweet = tweet
-		j.data.LastChange = &now
-	}
+	a.Lock()
+	defer a.Unlock()
 
 	j.data.LastAccessed = &now
+	if err != nil {
+		log.Printf("Error for %s: %v", j.data.Id, err)
+		j.data.LastError = &now
+		j.data.TwitterErr = err.Error()
+	} else {
+		j.data.TwitterErr = ""
+		if j.data.Tweet != tweet {
+			j.data.Tweet = tweet
+			j.data.LastChange = &now
+		}
+	}
 }
 
 func (a *apiResponse) MarshalJSON() ([]byte, error) {
@@ -98,7 +114,12 @@ func (a *apiResponse) jobs() *jobQueue {
 	jobs := NewJobQueue(len(a.data))
 	for i := range a.data {
 		val := &a.data[i]
-		jobs.push(job{val, val.Url, val.Selector, val.Twitter})
+		if val.Url != "" {
+			jobs.push(job{val, val.Url, val.Selector, ""})
+		}
+		if val.Twitter != "" {
+			jobs.push(job{val, "", "", val.Twitter})
+		}
 	}
 
 	return jobs
