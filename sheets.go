@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
+	"log"
 
 	"github.com/pkg/errors"
 	"golang.org/x/oauth2/google"
@@ -11,6 +12,7 @@ import (
 )
 
 func fromSheet(gdoc string) error {
+	log.Printf("Connecting to Google Sheets for %q", gdoc)
 	keydata, err := ioutil.ReadFile("client_secret.json")
 	if err != nil {
 		return errors.WithMessage(err, "could not read credentials")
@@ -36,6 +38,8 @@ func fromSheet(gdoc string) error {
 	if err = data.fromRows(sheet.Rows); err != nil {
 		return err
 	}
+
+	log.Printf("Succesfully processed Google Sheet")
 
 	return nil
 }
