@@ -1,27 +1,27 @@
-FROM golang:latest as builder
+FROM golang:alpine as go-builder
 WORKDIR /go/src/github.com/baltimore-sun-data/track-changes
 COPY . .
 
-# Make Yarn installable
-RUN curl -sL https://deb.nodesource.com/setup_8.x | bash -
-RUN apt-get update
-RUN apt-get install -y --no-install-recommends \
-    nodejs \
-    build-essential
-
+# Get dep working and install dependencies
+RUN apk --no-cache add git
 RUN go get -u -v github.com/golang/dep/cmd/dep
-RUN npm install -g yarn
 RUN dep ensure
+
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o app .
+
+# Node comes with yarn
+FROM node:alpine as yarn-builder
+WORKDIR /go/src/github.com/baltimore-sun-data/track-changes
+COPY . .
+
 RUN yarn
 RUN yarn run build
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o app .
 
 FROM alpine:latest
 RUN apk --no-cache add ca-certificates
 WORKDIR /root/
-COPY --from=builder /go/src/github.com/baltimore-sun-data/track-changes/app .
-COPY --from=builder /go/src/github.com/baltimore-sun-data/track-changes/assets/ assets/
+COPY --from=go-builder /go/src/github.com/baltimore-sun-data/track-changes/app .
+COPY --from=yarn-builder /go/src/github.com/baltimore-sun-data/track-changes/assets/ assets/
 
-ENV PORT 80
-EXPOSE 80
+EXPOSE 80 443
 CMD ./app
