@@ -4,7 +4,16 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+
+	"github.com/go-chi/chi"
 )
+
+var router = chi.NewRouter()
+
+func init() {
+	router.Get("/*", http.FileServer(http.Dir("assets")).ServeHTTP)
+	router.Get("/api", handler)
+}
 
 func handler(w http.ResponseWriter, r *http.Request) {
 	e := json.NewEncoder(w)

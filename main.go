@@ -41,9 +41,7 @@ func main() {
 
 	go data.jobs().start()
 
-	http.Handle("/", http.FileServer(http.Dir("assets")))
-	http.HandleFunc("/api", handler)
-	gracefulserver.Serve(http.DefaultServeMux)
+	gracefulserver.Serve(router)
 }
 
 func start(gdoc, fname string) error {
