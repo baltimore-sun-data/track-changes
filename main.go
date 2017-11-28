@@ -16,7 +16,7 @@ var (
 	nWorkers int
 	// Sleep time between checks
 	dSleep time.Duration
-	// apiResponse data shared between poller and server
+	// dataStore that links sheet IDs to apiResponses
 	globalData dataStore
 )
 
