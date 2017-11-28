@@ -32,22 +32,23 @@ func (a *apiResponse) fromSheet(gdoc string) error {
 		return errors.WithMessage(err, "Sheet does not contain expected data")
 	}
 
-	if err = a.fromRows(sheet.Rows); err != nil {
+	ctx, err := a.fromRows(sheet.Rows)
+	if err != nil {
 		return err
 	}
 
 	log.Printf("Succesfully processed Google Sheet")
-	go a.jobs().start()
+	go a.jobs().start(ctx)
 
 	return nil
 }
 
-func (a *apiResponse) fromRows(rows [][]spreadsheet.Cell) error {
+func (a *apiResponse) fromRows(rows [][]spreadsheet.Cell) (ctx context.Context, err error) {
 	a.Lock()
 	defer a.Unlock()
 
 	if len(rows) < 1 {
-		return fmt.Errorf("Google Sheet does not contain any rows")
+		return nil, fmt.Errorf("Google Sheet does not contain any rows")
 	}
 
 	rowLen := len(rows[0])
@@ -65,20 +66,24 @@ func (a *apiResponse) fromRows(rows [][]spreadsheet.Cell) error {
 		"selector":           &selectorIdx,
 		"twitter_screenname": &screennameIdx,
 	}); err != nil {
-		return errors.WithMessage(err, "spreadsheet missing header")
+		return nil, errors.WithMessage(err, "spreadsheet missing header")
 	}
 
-	for i, row := range rows {
-		if i == 0 {
-			continue
-		}
+	// Kill off existing jobs
+	if a.cancel != nil {
+		a.cancel()
+	}
 
+	ctx, a.cancel = context.WithCancel(context.Background())
+	a.data = nil
+
+	for _, row := range rows[1:] {
 		if len(row) != rowLen {
-			return fmt.Errorf("malformed row")
+			return nil, fmt.Errorf("malformed row")
 		}
 
 		if row[0].Value == "" {
-			return nil
+			return ctx, nil
 		}
 
 		a.data = append(a.data, pageInfo{
@@ -91,7 +96,7 @@ func (a *apiResponse) fromRows(rows [][]spreadsheet.Cell) error {
 		})
 	}
 
-	return nil
+	return ctx, nil
 }
 
 func indexFields(row []spreadsheet.Cell, fields map[string]*int) error {

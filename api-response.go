@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"log"
 	"sync"
@@ -24,7 +25,8 @@ type pageInfo struct {
 }
 
 type apiResponse struct {
-	data []pageInfo
+	data   []pageInfo
+	cancel context.CancelFunc
 	sync.RWMutex
 }
 

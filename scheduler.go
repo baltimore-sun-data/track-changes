@@ -2,6 +2,7 @@ package main
 
 import (
 	"container/heap"
+	"context"
 	"log"
 	"math/rand"
 	"time"
@@ -62,7 +63,7 @@ func (jq jobQueue) first() job {
 	return jq.jobs[jq.head]
 }
 
-func (jq *jobQueue) start() {
+func (jq *jobQueue) start(ctx context.Context) {
 	var (
 		workCh   = make(chan job)
 		resultCh = make(chan job)
@@ -70,7 +71,7 @@ func (jq *jobQueue) start() {
 	)
 
 	for i := 0; i < nWorkers; i++ {
-		go worker(workCh, resultCh)
+		go worker(ctx, workCh, resultCh)
 	}
 
 	for {
@@ -86,15 +87,22 @@ func (jq *jobQueue) start() {
 			tq.add(j)
 		case <-tq.timer():
 			jq.push(tq.popJob())
+		case <-ctx.Done():
+			close(workCh)
+			return
 		}
 	}
 
 }
 
-func worker(workCh, resultCh chan job) {
+func worker(ctx context.Context, workCh, resultCh chan job) {
 	for j := range workCh {
 		j.Update()
-		resultCh <- j
+		select {
+		case resultCh <- j:
+		case <-ctx.Done():
+			return
+		}
 	}
 }
 

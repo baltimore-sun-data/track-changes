@@ -27,3 +27,19 @@ func (d *dataStore) get(sheet string) (ar *apiResponse, err error) {
 	}
 	return
 }
+
+func (d *dataStore) refresh(sheet string) error {
+	var ar *apiResponse
+	a, ok := d.m.Load(sheet)
+	if ok {
+		ar = a.(*apiResponse)
+	} else {
+		ar = &apiResponse{}
+		a, loaded := d.m.LoadOrStore(sheet, ar)
+		if loaded {
+			ar = a.(*apiResponse)
+		}
+	}
+
+	return ar.fromSheet(sheet)
+}
