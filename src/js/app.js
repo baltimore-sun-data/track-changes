@@ -11,7 +11,8 @@ NodeList.prototype.addEventListener = function(event, func) {
   });
 };
 
-const API_URL = "/api";
+const params = new URLSearchParams(window.location.search);
+const API_URL = `/api/sheet/${params.get("sheet")}`;
 window.next_poll = 5 * 60 * 1000; // 5 minute default
 
 const table = document.getElementById("xtable");

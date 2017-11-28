@@ -37,6 +37,7 @@ func (a *apiResponse) fromSheet(gdoc string) error {
 	}
 
 	log.Printf("Succesfully processed Google Sheet")
+	go a.jobs().start()
 
 	return nil
 }
