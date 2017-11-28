@@ -80,7 +80,7 @@ func (a *apiResponse) fromRows(rows [][]spreadsheet.Cell) error {
 			return nil
 		}
 
-		data.data = append(data.data, jsonData{
+		data.data = append(data.data, pageInfo{
 			Id:          row[idIdx].Value,
 			HomePageUrl: row[homepageUrlIdx].Value,
 			Twitter:     row[screennameIdx].Value,

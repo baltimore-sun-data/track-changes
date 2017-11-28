@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-type jsonData struct {
+type pageInfo struct {
 	Id           string     `json:"id"`
 	HomePageUrl  string     `json:"homepage_url"`
 	Twitter      string     `json:"twitter_screenname"`
@@ -24,12 +24,12 @@ type jsonData struct {
 }
 
 type apiResponse struct {
-	data []jsonData
+	data []pageInfo
 	sync.RWMutex
 }
 
 type envelope struct {
-	Data  *[]jsonData `json:"data"`
+	Data  *[]pageInfo `json:"data"`
 	Meta  interface{} `json:"meta"`
 	Error interface{} `json:"error,omitempty"`
 }

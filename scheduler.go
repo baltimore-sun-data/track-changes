@@ -7,7 +7,7 @@ import (
 )
 
 type job struct {
-	data                   *jsonData
+	data                   *pageInfo
 	url, selector, twitter string
 }
 
