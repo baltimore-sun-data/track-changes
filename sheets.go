@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"log"
 
 	"github.com/pkg/errors"
@@ -11,14 +10,12 @@ import (
 	"gopkg.in/Iwark/spreadsheet.v2"
 )
 
+var sheetsClientSecret = GetEnv("GOOGLE_CLIENT_SECRET")
+
 func fromSheet(gdoc string) error {
 	log.Printf("Connecting to Google Sheets for %q", gdoc)
-	keydata, err := ioutil.ReadFile("client_secret.json")
-	if err != nil {
-		return errors.WithMessage(err, "could not read credentials")
-	}
 
-	conf, err := google.JWTConfigFromJSON(keydata, spreadsheet.Scope)
+	conf, err := google.JWTConfigFromJSON([]byte(sheetsClientSecret), spreadsheet.Scope)
 	if err != nil {
 		return errors.WithMessage(err, "could not parse credentials")
 	}

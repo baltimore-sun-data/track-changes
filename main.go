@@ -29,6 +29,11 @@ func main() {
 	flag.IntVar(&nWorkers, "workers", 4, "how many simultaneously downloading workers to launch")
 	flag.Parse()
 
+	if err := EnvErrors(); err != nil {
+		fmt.Fprintf(os.Stderr, "Could not start: %v\n", err)
+		os.Exit(3)
+	}
+
 	if err := start(*gdoc, *fname); err != nil {
 		fmt.Fprintf(os.Stderr, "Fatal error during start up: %v\n", err)
 		os.Exit(1)
