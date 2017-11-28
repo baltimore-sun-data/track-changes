@@ -2,13 +2,27 @@ package main
 
 import (
 	"container/heap"
+	"log"
 	"math/rand"
 	"time"
 )
 
 type job struct {
+	owner                  *apiResponse
 	data                   *pageInfo
 	url, selector, twitter string
+}
+
+func (j job) Update() {
+	log.Printf("Updating %#v", j)
+
+	if j.url != "" {
+		j.owner.updateWeb(j.data, j.url, j.selector)
+	}
+
+	if j.twitter != "" {
+		j.owner.updateTwitter(j.data, j.twitter)
+	}
 }
 
 type jobQueue struct {
@@ -79,7 +93,7 @@ func (jq *jobQueue) start() {
 
 func worker(workCh, resultCh chan job) {
 	for j := range workCh {
-		data.Update(j)
+		j.Update()
 		resultCh <- j
 	}
 }

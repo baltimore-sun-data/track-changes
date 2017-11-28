@@ -34,56 +34,44 @@ type envelope struct {
 	Error interface{} `json:"error,omitempty"`
 }
 
-func (a *apiResponse) Update(j job) {
-	log.Printf("Updating %#v", j)
-
-	if j.url != "" {
-		a.updateWeb(j)
-	}
-
-	if j.twitter != "" {
-		a.updateTwitter(j)
-	}
-}
-
-func (a *apiResponse) updateWeb(j job) {
+func (a *apiResponse) updateWeb(pi *pageInfo, url, selector string) {
 	now := time.Now()
-	txt, err := get(j.url, j.selector)
+	txt, err := get(url, selector)
 
 	a.Lock()
 	defer a.Unlock()
 
-	j.data.LastAccessed = &now
+	pi.LastAccessed = &now
 	if err != nil {
-		log.Printf("Error for %s: %v", j.data.Id, err)
-		j.data.LastError = &now
-		j.data.Err = err.Error()
+		log.Printf("Error for %s: %v", pi.Id, err)
+		pi.LastError = &now
+		pi.Err = err.Error()
 	} else {
-		j.data.Err = ""
-		if j.data.Content != txt {
-			j.data.Content = txt
-			j.data.LastChange = &now
+		pi.Err = ""
+		if pi.Content != txt {
+			pi.Content = txt
+			pi.LastChange = &now
 		}
 	}
 }
 
-func (a *apiResponse) updateTwitter(j job) {
+func (a *apiResponse) updateTwitter(pi *pageInfo, twitter string) {
 	now := time.Now()
-	tweet, err := getTweet(j.twitter)
+	tweet, err := getTweet(twitter)
 
 	a.Lock()
 	defer a.Unlock()
 
-	j.data.LastAccessed = &now
+	pi.LastAccessed = &now
 	if err != nil {
-		log.Printf("Error for %s: %v", j.data.Id, err)
-		j.data.LastError = &now
-		j.data.TwitterErr = err.Error()
+		log.Printf("Error for %s: %v", pi.Id, err)
+		pi.LastError = &now
+		pi.TwitterErr = err.Error()
 	} else {
-		j.data.TwitterErr = ""
-		if j.data.Tweet != tweet {
-			j.data.Tweet = tweet
-			j.data.LastChange = &now
+		pi.TwitterErr = ""
+		if pi.Tweet != tweet {
+			pi.Tweet = tweet
+			pi.LastChange = &now
 		}
 	}
 }
@@ -115,10 +103,10 @@ func (a *apiResponse) jobs() *jobQueue {
 	for i := range a.data {
 		val := &a.data[i]
 		if val.Url != "" {
-			jobs.push(job{val, val.Url, val.Selector, ""})
+			jobs.push(job{a, val, val.Url, val.Selector, ""})
 		}
 		if val.Twitter != "" {
-			jobs.push(job{val, "", "", val.Twitter})
+			jobs.push(job{a, val, "", "", val.Twitter})
 		}
 	}
 

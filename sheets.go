@@ -12,7 +12,7 @@ import (
 
 var sheetsClientSecret = GetEnv("GOOGLE_CLIENT_SECRET")
 
-func fromSheet(gdoc string) error {
+func (a *apiResponse) fromSheet(gdoc string) error {
 	log.Printf("Connecting to Google Sheets for %q", gdoc)
 
 	conf, err := google.JWTConfigFromJSON([]byte(sheetsClientSecret), spreadsheet.Scope)
@@ -32,7 +32,7 @@ func fromSheet(gdoc string) error {
 		return errors.WithMessage(err, "Sheet does not contain expected data")
 	}
 
-	if err = data.fromRows(sheet.Rows); err != nil {
+	if err = a.fromRows(sheet.Rows); err != nil {
 		return err
 	}
 
@@ -80,7 +80,7 @@ func (a *apiResponse) fromRows(rows [][]spreadsheet.Cell) error {
 			return nil
 		}
 
-		data.data = append(data.data, pageInfo{
+		a.data = append(a.data, pageInfo{
 			Id:          row[idIdx].Value,
 			HomePageUrl: row[homepageUrlIdx].Value,
 			Twitter:     row[screennameIdx].Value,

@@ -46,7 +46,7 @@ func main() {
 
 func start(gdoc, fname string) error {
 	if gdoc != "" {
-		return fromSheet(gdoc)
+		return data.fromSheet(gdoc)
 	}
 
 	f := os.Stdin
