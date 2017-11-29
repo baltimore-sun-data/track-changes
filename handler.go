@@ -15,10 +15,10 @@ var router = chi.NewRouter()
 func init() {
 	// Basic Auth protected routes
 	router.With(basicAuthMiddleware).Get("/*", http.FileServer(http.Dir("assets")).ServeHTTP)
-	router.With(basicAuthMiddleware).Get("/api/sheet/{sheetID}", getApiRequest)
-	router.With(basicAuthMiddleware).Post("/api/sheet/{sheetID}", postApiRequest)
 
 	// Unprotected routes
+	router.Get("/api/sheet/{sheetID}", getApiRequest)
+	router.Post("/api/sheet/{sheetID}", postApiRequest)
 	router.Get("/api/health", healthCheck)
 }
 
