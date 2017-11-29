@@ -31,7 +31,7 @@ type apiResponse struct {
 }
 
 type envelope struct {
-	Data  *[]pageInfo `json:"data"`
+	Data  interface{} `json:"data"`
 	Meta  interface{} `json:"meta"`
 	Error interface{} `json:"error,omitempty"`
 }

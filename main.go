@@ -18,6 +18,8 @@ var (
 	dSleep time.Duration
 	// dataStore that links sheet IDs to apiResponses
 	globalData dataStore
+	// Set during Docker build process
+	applicationBuildDate = "N/A"
 )
 
 func main() {

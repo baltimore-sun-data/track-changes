@@ -7,7 +7,9 @@ RUN apk --no-cache add git
 RUN go get -u -v github.com/golang/dep/cmd/dep
 RUN dep ensure
 
-RUN CGO_ENABLED=0 GOOS=linux go build -o app .
+RUN CGO_ENABLED=0 GOOS=linux go build \
+    -ldflags "-X 'main.applicationBuildDate=`date`'" \
+    -o app .
 
 # Node comes with yarn
 FROM node:alpine as yarn-builder
