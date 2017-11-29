@@ -2,8 +2,10 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/go-chi/chi"
 )
@@ -11,6 +13,7 @@ import (
 var router = chi.NewRouter()
 
 func init() {
+	router.Use(basicAuthMiddleware)
 	router.Get("/*", http.FileServer(http.Dir("assets")).ServeHTTP)
 	router.Get("/api/sheet/{sheetID}", getApiRequest)
 	router.Post("/api/sheet/{sheetID}", postApiRequest)
@@ -53,4 +56,30 @@ func jsonEncode(w http.ResponseWriter, r *http.Request, data interface{}) {
 	if err := e.Encode(&data); err != nil {
 		log.Printf("Unexpected error while encoding for %s: %v", r.URL.Path, err)
 	}
+}
+
+func basicAuthMiddleware(h http.Handler) http.Handler {
+	username := os.Getenv("BASIC_AUTH_USER")
+	password := os.Getenv("BASIC_AUTH_PASSWORD")
+	realm := os.Getenv("BASIC_AUTH_MESSAGE")
+
+	if username == "" || password == "" {
+		return h
+	}
+
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Should use HTTPS with BasicAuth
+		w.Header().Add("Strict-Transport-Security", "max-age=31536000")
+
+		u, p, ok := r.BasicAuth()
+		if ok && u == username && p == password {
+			h.ServeHTTP(w, r)
+			return
+		}
+
+		w.Header().Set("WWW-Authenticate", fmt.Sprintf(`Basic realm="%s"`, realm))
+		w.WriteHeader(http.StatusUnauthorized)
+		fmt.Fprintf(w, "%d %s\n",
+			http.StatusUnauthorized, http.StatusText(http.StatusUnauthorized))
+	})
 }
