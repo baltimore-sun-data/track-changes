@@ -7,7 +7,7 @@ RUN apk --no-cache add git
 RUN go get -u -v github.com/golang/dep/cmd/dep
 RUN dep ensure
 
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o app .
+RUN CGO_ENABLED=0 GOOS=linux go build -o app .
 
 # Node comes with yarn
 FROM node:alpine as yarn-builder
@@ -23,5 +23,6 @@ WORKDIR /root/
 COPY --from=go-builder /go/src/github.com/baltimore-sun-data/track-changes/app .
 COPY --from=yarn-builder /go/src/github.com/baltimore-sun-data/track-changes/assets/ assets/
 
-EXPOSE 80 443
-CMD ./app
+ENV PORT 80
+EXPOSE 80
+CMD ["./app"]

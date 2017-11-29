@@ -1,3 +1,7 @@
 assets
 node_modules
 vendor
+# Elastic Beanstalk Files
+.elasticbeanstalk/*
+.git
+.gitignore
