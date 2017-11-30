@@ -10,7 +10,7 @@ import (
 	"gopkg.in/Iwark/spreadsheet.v2"
 )
 
-var sheetsClientSecret = GetEnv("GOOGLE_CLIENT_SECRET")
+var sheetsClientSecret = MustGetEnv("GOOGLE_CLIENT_SECRET")
 
 func (a *apiResponse) fromSheet(gdoc string) error {
 	log.Printf("Connecting to Google Sheets for %q", gdoc)

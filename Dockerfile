@@ -25,6 +25,12 @@ WORKDIR /root/
 COPY --from=go-builder /go/src/github.com/baltimore-sun-data/track-changes/app .
 COPY --from=yarn-builder /go/src/github.com/baltimore-sun-data/track-changes/assets/ assets/
 
+# Mount volume containing config/secrets
+VOLUME [ "/var/track-changes" ]
+ENV ENV_FILE /var/track-changes/track-changes-prod.json
+
+# Set port
 ENV PORT 80
 EXPOSE 80
-CMD ["./app"]
+
+CMD [ "./app" ]

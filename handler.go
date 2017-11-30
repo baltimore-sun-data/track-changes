@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os"
 
 	"github.com/go-chi/chi"
 )
@@ -61,9 +60,9 @@ func jsonEncode(w http.ResponseWriter, r *http.Request, data interface{}) {
 }
 
 func basicAuthMiddleware(h http.Handler) http.Handler {
-	username := os.Getenv("BASIC_AUTH_USER")
-	password := os.Getenv("BASIC_AUTH_PASSWORD")
-	realm := os.Getenv("BASIC_AUTH_MESSAGE")
+	username := GetEnv("BASIC_AUTH_USER")
+	password := GetEnv("BASIC_AUTH_PASSWORD")
+	realm := GetEnv("BASIC_AUTH_MESSAGE")
 
 	if username == "" || password == "" {
 		return h
