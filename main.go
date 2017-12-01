@@ -20,12 +20,15 @@ var (
 	globalData dataStore
 	// Set during Docker build process
 	applicationBuildDate = "N/A"
+	// Template auto-reload
+	reload bool
 )
 
 func main() {
 	flag.DurationVar(&dSleep, "poll", 5*time.Minute, "how often to poll for changes")
 	flag.DurationVar(&http.DefaultClient.Timeout, "timeout", 10*time.Second, "how long to wait for a slow server")
 	flag.IntVar(&nWorkers, "workers", 4, "how many simultaneously downloading workers to launch")
+	flag.BoolVar(&reload, "reload", false, "auto-reload templates for development")
 	flag.Parse()
 
 	if err := EnvErrors(); err != nil {

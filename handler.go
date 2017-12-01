@@ -50,12 +50,28 @@ func init() {
 	}
 }
 
+type fileTemplate struct {
+	files []string
+	t     *template.Template
+}
+
+func newFileTemplate(files ...string) fileTemplate {
+	return fileTemplate{files, template.Must(template.ParseFiles(files...))}
+}
+
 var (
-	homepageTemplate = template.Must(template.ParseFiles(
-		"templates/base.gohtml", "templates/index.gohtml"))
-	listingTemplate = template.Must(template.ParseFiles(
-		"templates/base.gohtml", "templates/listing.gohtml"))
+	homepageT = newFileTemplate("templates/base.gohtml", "templates/index.gohtml")
+	listingT  = newFileTemplate("templates/base.gohtml", "templates/listing.gohtml")
 )
+
+func (t fileTemplate) Exec(w http.ResponseWriter, r *http.Request, data interface{}) {
+	if reload {
+		t.t = template.Must(template.ParseFiles(t.files...))
+	}
+	if err := t.t.Execute(w, &data); err != nil {
+		log.Printf("Unexpected template error for %s: %v", r.URL.Path, err)
+	}
+}
 
 func getHomepage(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Query().Get("sheet") == "" {
@@ -63,20 +79,14 @@ func getHomepage(w http.ResponseWriter, r *http.Request) {
 			Manifest        map[string]string
 			BasicAuthHeader string
 		}{staticManifest, baHeader}
-		templateExec(w, r, homepageTemplate, &data)
+		homepageT.Exec(w, r, &data)
 		return
 	}
 	data := struct {
 		Manifest        map[string]string
 		BasicAuthHeader string
 	}{staticManifest, baHeader}
-	templateExec(w, r, listingTemplate, &data)
-}
-
-func templateExec(w http.ResponseWriter, r *http.Request, t *template.Template, data interface{}) {
-	if err := t.Execute(w, &data); err != nil {
-		log.Printf("Unexpected template error for %s: %v", r.URL.Path, err)
-	}
+	listingT.Exec(w, r, &data)
 }
 
 func getApiRequest(w http.ResponseWriter, r *http.Request) {
