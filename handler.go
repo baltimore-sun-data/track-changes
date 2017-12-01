@@ -3,6 +3,8 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"html/template"
+	"io/ioutil"
 	"log"
 	"net/http"
 
@@ -31,8 +33,26 @@ func init() {
 	router.Get("/api/health", healthCheck)
 }
 
+var homepageTemplate = template.Must(template.ParseFiles("templates/index.gohtml"))
+
+var staticManifest map[string]string
+
+func init() {
+	b, err := ioutil.ReadFile("assets/manifest.json")
+	if err != nil {
+		log.Fatalf("Could not read static asset manifest: %v", err)
+		return
+	}
+
+	err = json.Unmarshal(b, &staticManifest)
+	if err != nil {
+		log.Fatalf("Could not parse static asset manifest: %v", err)
+		return
+	}
+}
+
 func getHomepage(w http.ResponseWriter, r *http.Request) {
-	http.ServeFile(w, r, "assets/index.html")
+	homepageTemplate.Execute(w, staticManifest)
 }
 
 func getApiRequest(w http.ResponseWriter, r *http.Request) {

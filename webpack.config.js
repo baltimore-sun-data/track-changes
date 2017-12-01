@@ -1,6 +1,5 @@
 const CleanWebpackPlugin = require("clean-webpack-plugin");
 const ExtractTextPlugin = require("extract-text-webpack-plugin");
-const HtmlWebpackPlugin = require("html-webpack-plugin");
 const ManifestPlugin = require("webpack-manifest-plugin");
 const MinifyPlugin = require("babel-minify-webpack-plugin");
 const path = require("path");
@@ -61,11 +60,7 @@ module.exports = {
     new CleanWebpackPlugin(["assets"]),
     new ManifestPlugin({
       fileName: "../manifest.json",
-      publicPath: "assets/static/"
-    }),
-    new HtmlWebpackPlugin({
-      filename: "../index.html",
-      template: "index.html"
+      publicPath: "/static/"
     }),
     new MinifyPlugin(),
     new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/),

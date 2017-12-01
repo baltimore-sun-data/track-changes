@@ -22,6 +22,7 @@ RUN yarn run build
 FROM alpine:latest
 RUN apk --no-cache add ca-certificates
 WORKDIR /root/
+COPY templates/ templates/
 COPY --from=go-builder /go/src/github.com/baltimore-sun-data/track-changes/app .
 COPY --from=yarn-builder /go/src/github.com/baltimore-sun-data/track-changes/assets/ assets/
 
