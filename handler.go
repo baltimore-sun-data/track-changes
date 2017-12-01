@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/middleware"
 )
 
 var router = chi.NewRouter()
@@ -15,7 +16,14 @@ func init() {
 	// Basic Auth protected routes
 	router.With(basicAuthMiddleware).Get("/", getHomepage)
 	// Note: Don't need http.StripPrefix because we serve the parent dir
-	router.With(basicAuthMiddleware).Get("/static/*", http.FileServer(http.Dir("assets")).ServeHTTP)
+	router.With(
+		basicAuthMiddleware,
+		middleware.DefaultCompress,
+		middleware.SetHeader("Cache-Control", "public, max-age=365000000, immutable"),
+	).Get(
+		"/static/*",
+		http.FileServer(http.Dir("assets")).ServeHTTP,
+	)
 
 	// Unprotected routes
 	router.Get("/api/sheet/{sheetID}", getApiRequest)
