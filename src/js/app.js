@@ -13,6 +13,14 @@ NodeList.prototype.addEventListener = function(event, func) {
 
 const params = new URLSearchParams(window.location.search);
 const API_URL = `/api/sheet/${params.get("sheet")}`;
+const API_OPTIONS = !window.trackChanges.basicAuthHeader
+  ? {}
+  : {
+      method: "GET",
+      headers: {
+        Authorization: `Basic ${window.trackChanges.basicAuthHeader}`
+      }
+    };
 window.next_poll = 5 * 60 * 1000; // 5 minute default
 
 const table = document.getElementById("xtable");
@@ -61,7 +69,7 @@ async function updateData() {
     let rsp;
 
     try {
-      rsp = await fetch(API_URL);
+      rsp = await fetch(API_URL, API_OPTIONS);
     } catch (e) {
       throw new Error(`Problem connecting to API: ${e.message}`);
     }

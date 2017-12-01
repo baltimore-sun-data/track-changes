@@ -4,8 +4,13 @@
   <meta charset="utf-8">
   <title>Track Changes Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link href='{{ index . "main.css" }}' rel="stylesheet">
-  <script type="text/javascript" src='{{ index . "main.js" }}' async defer></script>
+  <link href='{{ index .Manifest "main.css" }}' rel="stylesheet">
+  <script type="text/javascript">
+    window.trackChanges = {
+      basicAuthHeader: {{.BasicAuthHeader}}
+    };
+  </script>
+  <script type="text/javascript" src='{{ index .Manifest "main.js" }}' async defer></script>
 </head>
 <body>
     <h1>Track Changes</h1>

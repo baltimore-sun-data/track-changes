@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"html/template"
@@ -26,10 +27,10 @@ func init() {
 		"/static/*",
 		http.FileServer(http.Dir("assets")).ServeHTTP,
 	)
+	router.With(basicAuthMiddleware).Get("/api/sheet/{sheetID}", getApiRequest)
+	router.With(basicAuthMiddleware).Post("/api/sheet/{sheetID}", postApiRequest)
 
 	// Unprotected routes
-	router.Get("/api/sheet/{sheetID}", getApiRequest)
-	router.Post("/api/sheet/{sheetID}", postApiRequest)
 	router.Get("/api/health", healthCheck)
 }
 
@@ -52,7 +53,11 @@ func init() {
 }
 
 func getHomepage(w http.ResponseWriter, r *http.Request) {
-	homepageTemplate.Execute(w, staticManifest)
+	data := struct {
+		Manifest        map[string]string
+		BasicAuthHeader string
+	}{staticManifest, baHeader}
+	homepageTemplate.Execute(w, &data)
 }
 
 func getApiRequest(w http.ResponseWriter, r *http.Request) {
@@ -93,26 +98,34 @@ func jsonEncode(w http.ResponseWriter, r *http.Request, data interface{}) {
 	}
 }
 
-func basicAuthMiddleware(h http.Handler) http.Handler {
-	username := GetEnv("BASIC_AUTH_USER")
-	password := GetEnv("BASIC_AUTH_PASSWORD")
-	realm := GetEnv("BASIC_AUTH_MESSAGE")
+// Basic Auth static vars
+var (
+	baUsername = GetEnv("BASIC_AUTH_USER")
+	baPassword = GetEnv("BASIC_AUTH_PASSWORD")
+	baRealm    = GetEnv("BASIC_AUTH_MESSAGE")
+	baHeader   string
+)
 
-	if username == "" || password == "" {
+func basicAuthMiddleware(h http.Handler) http.Handler {
+	if baUsername == "" || baPassword == "" {
 		return h
 	}
+
+	baHeader = base64.StdEncoding.EncodeToString([]byte(
+		baUsername + ":" + baPassword,
+	))
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Should use HTTPS with BasicAuth
 		w.Header().Add("Strict-Transport-Security", "max-age=31536000")
 
 		u, p, ok := r.BasicAuth()
-		if ok && u == username && p == password {
+		if ok && u == baUsername && p == baPassword {
 			h.ServeHTTP(w, r)
 			return
 		}
 
-		w.Header().Set("WWW-Authenticate", fmt.Sprintf(`Basic realm="%s"`, realm))
+		w.Header().Set("WWW-Authenticate", fmt.Sprintf(`Basic realm="%s"`, baRealm))
 		w.WriteHeader(http.StatusUnauthorized)
 		fmt.Fprintf(w, "%d %s\n",
 			http.StatusUnauthorized, http.StatusText(http.StatusUnauthorized))
