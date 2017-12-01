@@ -15,7 +15,7 @@ module.exports = {
   entry: "./js/app.js",
   output: {
     filename: "js/[name].[hash].js",
-    path: path.resolve(__dirname, "assets")
+    path: path.resolve(__dirname, "assets/static")
   },
   module: {
     rules: [
@@ -59,9 +59,12 @@ module.exports = {
   },
   plugins: [
     new CleanWebpackPlugin(["assets"]),
-    new ManifestPlugin(),
+    new ManifestPlugin({
+      fileName: "../manifest.json",
+      publicPath: "assets/static/"
+    }),
     new HtmlWebpackPlugin({
-      filename: "index.html",
+      filename: "../index.html",
       template: "index.html"
     }),
     new MinifyPlugin(),
