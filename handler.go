@@ -34,8 +34,6 @@ func init() {
 	router.Get("/api/health", healthCheck)
 }
 
-var homepageTemplate = template.Must(template.ParseFiles("templates/index.gohtml"))
-
 var staticManifest map[string]string
 
 func init() {
@@ -52,12 +50,33 @@ func init() {
 	}
 }
 
+var (
+	homepageTemplate = template.Must(template.ParseFiles(
+		"templates/base.gohtml", "templates/index.gohtml"))
+	listingTemplate = template.Must(template.ParseFiles(
+		"templates/base.gohtml", "templates/listing.gohtml"))
+)
+
 func getHomepage(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Query().Get("sheet") == "" {
+		data := struct {
+			Manifest        map[string]string
+			BasicAuthHeader string
+		}{staticManifest, baHeader}
+		templateExec(w, r, homepageTemplate, &data)
+		return
+	}
 	data := struct {
 		Manifest        map[string]string
 		BasicAuthHeader string
 	}{staticManifest, baHeader}
-	homepageTemplate.Execute(w, &data)
+	templateExec(w, r, listingTemplate, &data)
+}
+
+func templateExec(w http.ResponseWriter, r *http.Request, t *template.Template, data interface{}) {
+	if err := t.Execute(w, &data); err != nil {
+		log.Printf("Unexpected template error for %s: %v", r.URL.Path, err)
+	}
 }
 
 func getApiRequest(w http.ResponseWriter, r *http.Request) {

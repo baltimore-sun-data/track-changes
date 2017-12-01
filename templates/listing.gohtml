@@ -1,0 +1,26 @@
+{{define "body"}}
+    <h1><a href="/">Track Changes</a></h1>
+
+    <div class="refresh">
+      <span>Last refresh:</span>
+      <span class="refresh-time">None</span>
+      <button class="refresh-btn">Refresh</button>
+    </div>
+    <div id="error" class="display-none"></div>
+
+    <table id="xtable">
+     <thead>
+      <tr>
+       <th class="sortable">Name</th>
+       <th>Content</th>
+       <th>Tweet</th>
+       <th class="sortable table-time">Last Change</th>
+       <th class="sortable table-time">Last Check</th>
+       <th class="sortable table-error">Errors</th>
+      </tr>
+     </thead>
+     <tbody>
+      <tr><td colspan="6">Loading...</td></tr>
+     </tbody>
+    </table>
+{{end}}
