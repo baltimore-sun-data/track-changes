@@ -3,6 +3,7 @@ package main
 import (
 	"container/heap"
 	"context"
+	"fmt"
 	"log"
 	"math/rand"
 	"time"
@@ -15,7 +16,7 @@ type job struct {
 }
 
 func (j job) Update() {
-	log.Printf("Updating %#v", j)
+	log.Printf("Updating %v", j)
 
 	if j.url != "" {
 		j.owner.updateWeb(j.data, j.url, j.selector)
@@ -24,6 +25,17 @@ func (j job) Update() {
 	if j.twitter != "" {
 		j.owner.updateTwitter(j.data, j.twitter)
 	}
+}
+
+func (j job) String() string {
+	s := ""
+	if j.url != "" {
+		s = fmt.Sprintf("{%s||%s}", j.url, j.selector)
+	}
+	if j.twitter != "" {
+		s += fmt.Sprintf("{@%s}", j.twitter)
+	}
+	return s
 }
 
 type jobQueue struct {
