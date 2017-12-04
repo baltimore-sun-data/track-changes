@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/carlmjohnson/gracefulserver"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 )
@@ -16,6 +17,8 @@ import (
 var router = chi.NewRouter()
 
 func init() {
+	gracefulserver.Logger = middleware.Logger
+
 	// Basic Auth protected routes
 	router.With(basicAuthMiddleware).Get("/", getHomepage)
 	// Note: Don't need http.StripPrefix because we serve the parent dir
