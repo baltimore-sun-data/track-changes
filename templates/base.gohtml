@@ -5,9 +5,11 @@
     <title>{{block "title" .}}Track Changes Dashboard{{end}}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href='{{ index .Manifest "main.css" }}' rel="stylesheet">
-    {{block "js-head" .}}{{end}}
   </head>
   <body>
     {{block "body" .}}{{end}}
+    <script type="text/javascript" src='{{ index .Manifest "runtime.js" }}'></script>
+    <script type="text/javascript" src='{{ index .Manifest "vendor.js" }}'></script>
+    {{block "js-foot" .}}{{end}}
   </body>
 </html>

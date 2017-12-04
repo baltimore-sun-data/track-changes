@@ -6,7 +6,7 @@ const path = require("path");
 const webpack = require("webpack");
 
 module.exports = (env = {}) => {
-  let namePattern = env.production ? "[name].[hash]" : "[name]";
+  let namePattern = env.production ? "[name].[chunkhash]" : "[name]";
 
   const extractSass = new ExtractTextPlugin({
     filename: `css/${namePattern}.css`
@@ -16,7 +16,8 @@ module.exports = (env = {}) => {
     context: path.resolve(__dirname, "src"),
     entry: {
       main: "./scss/app.scss",
-      listing: "./js/listing.js"
+      listing: "./js/listing.js",
+      vendor: ["es6-string-html-template", "moment", "tinysort"]
     },
     output: {
       filename: `js/${namePattern}.js`,
@@ -64,6 +65,13 @@ module.exports = (env = {}) => {
     },
     plugins: [
       new CleanWebpackPlugin(["assets"]),
+      new webpack.HashedModuleIdsPlugin(),
+      new webpack.optimize.CommonsChunkPlugin({
+        name: "vendor"
+      }),
+      new webpack.optimize.CommonsChunkPlugin({
+        name: "runtime"
+      }),
       new ManifestPlugin({
         fileName: "../manifest.json",
         publicPath: "/static/"
