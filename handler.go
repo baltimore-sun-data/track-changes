@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"regexp"
 
 	"github.com/carlmjohnson/gracefulserver"
 	"github.com/go-chi/chi"
@@ -76,8 +77,11 @@ func (t fileTemplate) Exec(w http.ResponseWriter, r *http.Request, data interfac
 	}
 }
 
+var sheetRe = regexp.MustCompile(`/spreadsheets/d/([a-zA-Z0-9-_]+)`)
+
 func getHomepage(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Query().Get("sheet") == "" {
+	sheet := r.URL.Query().Get("sheet")
+	if sheet == "" {
 		data := struct {
 			Manifest        map[string]string
 			BasicAuthHeader string
@@ -85,6 +89,16 @@ func getHomepage(w http.ResponseWriter, r *http.Request) {
 		homepageT.Exec(w, r, &data)
 		return
 	}
+
+	// Strip URLs down to the final Google Docs identifier
+	if m := sheetRe.FindString(sheet); m != "" {
+		q := r.URL.Query()
+		q.Set("sheet", m[len("/spreadsheets/d/"):])
+		r.URL.RawQuery = q.Encode()
+		http.Redirect(w, r, r.URL.String(), http.StatusTemporaryRedirect)
+		return
+	}
+
 	data := struct {
 		Manifest        map[string]string
 		BasicAuthHeader string
