@@ -5,12 +5,7 @@
     <title>{{block "title" .}}Track Changes Dashboard{{end}}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href='{{ index .Manifest "main.css" }}' rel="stylesheet">
-    <script type="text/javascript">
-      window.trackChanges = {
-        basicAuthHeader: {{.BasicAuthHeader}}
-      };
-    </script>
-    <script type="text/javascript" src='{{ index .Manifest "main.js" }}' async defer></script>
+    {{block "js-head" .}}{{end}}
   </head>
   <body>
     {{block "body" .}}{{end}}

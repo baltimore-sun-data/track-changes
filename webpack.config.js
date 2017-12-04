@@ -14,7 +14,10 @@ module.exports = (env = {}) => {
 
   return {
     context: path.resolve(__dirname, "src"),
-    entry: "./js/app.js",
+    entry: {
+      main: "./scss/app.scss",
+      listing: "./js/listing.js"
+    },
     output: {
       filename: `js/${namePattern}.js`,
       path: path.resolve(__dirname, "assets/static")

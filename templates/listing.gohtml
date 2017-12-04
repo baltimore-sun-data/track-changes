@@ -1,3 +1,13 @@
+{{define "js-head"}}
+<script type="text/javascript">
+  window.trackChanges = {
+    basicAuthHeader: {{.BasicAuthHeader}},
+    apiUrl: "/api/sheet/{{.SheetID}}"
+  };
+</script>
+<script type="text/javascript" src='{{ index .Manifest "listing.js" }}' async defer></script>
+{{end}}
+
 {{define "body"}}
     <h1><a href="/">Track Changes</a></h1>
 

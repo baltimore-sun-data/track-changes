@@ -1,5 +1,3 @@
-import "../scss/app.scss";
-
 import { html } from "es6-string-html-template";
 import moment from "moment";
 import tinysort from "tinysort";
@@ -11,9 +9,7 @@ NodeList.prototype.addEventListener = function(event, func) {
   });
 };
 
-const params = new URLSearchParams(window.location.search);
-const API_URL = `/api/sheet/${params.get("sheet")}`;
-const API_OPTIONS = !window.trackChanges.basicAuthHeader
+const apiOptions = !window.trackChanges.basicAuthHeader
   ? {}
   : {
       method: "GET",
@@ -69,7 +65,7 @@ async function updateData() {
     let rsp;
 
     try {
-      rsp = await fetch(API_URL, API_OPTIONS);
+      rsp = await fetch(trackChanges.apiUrl, apiOptions);
     } catch (e) {
       throw new Error(`Problem connecting to API: ${e.message}`);
     }

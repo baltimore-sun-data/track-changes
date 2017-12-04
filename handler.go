@@ -83,9 +83,8 @@ func getHomepage(w http.ResponseWriter, r *http.Request) {
 	sheet := r.URL.Query().Get("sheet")
 	if sheet == "" {
 		data := struct {
-			Manifest        map[string]string
-			BasicAuthHeader string
-		}{staticManifest, baHeader}
+			Manifest map[string]string
+		}{staticManifest}
 		homepageT.Exec(w, r, &data)
 		return
 	}
@@ -102,7 +101,8 @@ func getHomepage(w http.ResponseWriter, r *http.Request) {
 	data := struct {
 		Manifest        map[string]string
 		BasicAuthHeader string
-	}{staticManifest, baHeader}
+		SheetID         string
+	}{staticManifest, baHeader, sheet}
 	listingT.Exec(w, r, &data)
 }
 
