@@ -74,6 +74,13 @@ func (a *apiResponse) fromRows(rows [][]spreadsheet.Cell) (ctx context.Context, 
 		a.cancel()
 	}
 
+	// Save info between refreshes
+	oldInfo := map[string]*pageInfo{}
+	for i := range a.data {
+		pp := &a.data[i]
+		oldInfo[pp.Id] = pp
+	}
+
 	ctx, a.cancel = context.WithCancel(context.Background())
 	a.data = nil
 
@@ -86,14 +93,19 @@ func (a *apiResponse) fromRows(rows [][]spreadsheet.Cell) (ctx context.Context, 
 			return ctx, nil
 		}
 
-		a.data = append(a.data, pageInfo{
-			Id:          row[idIdx].Value,
-			HomePageUrl: row[homepageUrlIdx].Value,
-			Twitter:     row[screennameIdx].Value,
-			DisplayName: row[nameIdx].Value,
-			Url:         row[notificationUrlIdx].Value,
-			Selector:    row[selectorIdx].Value,
-		})
+		// Use old info as basis
+		pi := oldInfo[row[idIdx].Value]
+		if pi == nil {
+			pi = &pageInfo{}
+		}
+		pi.Id = row[idIdx].Value
+		pi.HomePageUrl = row[homepageUrlIdx].Value
+		pi.Twitter = row[screennameIdx].Value
+		pi.DisplayName = row[nameIdx].Value
+		pi.Url = row[notificationUrlIdx].Value
+		pi.Selector = row[selectorIdx].Value
+
+		a.data = append(a.data, *pi)
 	}
 
 	return ctx, nil
