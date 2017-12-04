@@ -1,7 +1,65 @@
 {{define "title"}}Choose Sheet{{end}}
 {{define "body"}}
+
+  <h2>Select pages to track</h2>
   <form method="get">
     <input type="text" name="sheet" placeholder="Google Sheets URL">
     <button>Submit</button>
   </form>
+
+  <h2>Help</h2>
+
+<html>
+ <head>
+ </head>
+ <body>
+  <p>
+   Go to <a href="https://sheets.google.com">Google Sheets</a>
+   and create a new document with a list of pages to track. The first row should have the following header (order is not important, extra columns will be ignored):
+  </p>
+  <p>
+   <code>id</code>,
+   <code>name</code>,
+   <code>homepage_url</code>,
+   <code>notification_url</code>,
+   <code>selector</code>, and
+   <code>twitter_screenname</code>
+  </p>
+  <ul>
+   <li>
+    <code>id</code>: A unique identifier to keep track of pages between synchronizations with Google Sheets. Ex. 1.
+   </li>
+   <li>
+    <code>name</code>: Display name. Ex. &#34;Baltimore Sun&#34;
+   </li>
+   <li>
+    <code>homepage_url</code>: Main URL for the site. Ex. http://baltimoresun.com
+   </li>
+   <li>
+    <code>notification_url</code>: URL to track specifically. Ex. http://www.baltimoresun.com/news/breaking/
+   </li>
+   <li>
+    <code>selector</code>: A
+    <a href="http://api.jquery.com/category/selectors/">
+     jQuery-style
+    </a>
+    <a href="https://developer.mozilla.org/en-US/docs/Web/API/Document/querySelector">
+     query selector
+    </a>
+    . Ex.
+    <code>
+     .trb_outfit:first-of-type .trb_outfit_group_list:first-child &gt; :first
+-child h3 a
+    </code>
+   </li>
+   <li>
+    <code>twitter_screenname</code>: A twitter screenname without the at-mark. Ex. baltimoresun
+   </li>
+  </ul>
+  <p>
+    Once the spreadsheet has been created, create a share link. Set the spreadsheet permissions so that anyone with the URL can view it. Copy and paste the URL above.
+  </p>
+ </body>
+</html>
+
 {{end}}
