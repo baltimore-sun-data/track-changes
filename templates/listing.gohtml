@@ -11,12 +11,15 @@
 {{define "body"}}
     <h1><a href="/">Track Changes</a></h1>
 
-    <div class="refresh">
+    <p class="refresh">
+      <a
+        href="https://docs.google.com/spreadsheets/d/{{.SheetID}}"
+        target="_blank">View Sheet</a> (<button class="sheet-btn">Sync</button>)
       <span>Last refresh:</span>
       <span class="refresh-time">None</span>
       <button class="refresh-btn">Refresh</button>
-    </div>
-    <div id="error" class="display-none"></div>
+    </p>
+    <p id="error" class="display-none"></p>
 
     <table id="xtable">
      <thead>

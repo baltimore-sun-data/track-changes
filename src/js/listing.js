@@ -28,6 +28,8 @@ const error = document.getElementById("error");
 const refresh = document.querySelectorAll(".refresh-time");
 const refreshBtn = document.querySelectorAll(".refresh-btn");
 
+const sheetBtn = document.querySelectorAll(".sheet-btn");
+
 // Global to preserve sorting between refreshes
 let sortOptions = {};
 
@@ -154,5 +156,28 @@ async function updateData() {
   }
 }
 
+async function updateSheet() {
+  try {
+    let rsp;
+    let opts = Object.assign({}, apiOptions, { method: "POST" });
+
+    try {
+      rsp = await fetch(trackChanges.apiUrl, opts);
+    } catch (e) {
+      throw new Error(`Problem connecting to API: ${e.message}`);
+    }
+
+    if (!rsp.ok) {
+      throw new Error("Could not contact API");
+    }
+
+    return updateData();
+  } catch (e) {
+    error.classList.remove("display-none");
+    error.textContent = `Error returning data: ${e.message}`;
+  }
+}
+
 window.addEventListener("load", updateData);
 refreshBtn.addEventListener("click", updateData);
+sheetBtn.addEventListener("click", updateSheet);
