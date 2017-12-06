@@ -28,6 +28,7 @@ func getTweet(screenname string) (string, error) {
 	v.Set("screen_name", screenname)
 	v.Set("include_rts", "true")
 	v.Set("exclude_replies", "false")
+	v.Set("tweet_mode", "extended")
 	v.Set("count", "1")
 	ts, err := twitterApi.GetUserTimeline(v)
 	if len(ts) > 0 {
