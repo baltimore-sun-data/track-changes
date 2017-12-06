@@ -38,7 +38,15 @@ type envelope struct {
 
 func (a *apiResponse) updateWeb(pi *pageInfo, url, selector string) {
 	now := time.Now()
-	txt, err := get(url, selector)
+	var (
+		txt string
+		err error
+	)
+	if selector != "feed" {
+		txt, err = getHTML(url, selector)
+	} else {
+		txt, err = getFeed(url)
+	}
 
 	a.Lock()
 	defer a.Unlock()
