@@ -56,7 +56,9 @@ func getFeed(url string) (string, error) {
 		return "", fmt.Errorf("unexpected status for %s: %s", url, rsp.Status)
 	}
 
-	return firstFeedTitle(rsp.Body)
+	// Broken out so that deferClose can get err
+	s, err := firstFeedTitle(rsp.Body)
+	return s, err
 }
 
 func firstFeedTitle(r io.Reader) (string, error) {
