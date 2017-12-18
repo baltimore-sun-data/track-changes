@@ -19,6 +19,8 @@ const table = document.getElementById("xtable");
 const tableHead = table.querySelector("thead");
 const sortableTh = tableHead.querySelectorAll("th.sortable");
 
+const sheetTitle = document.querySelector(".header-sheet-title");
+
 const error = document.getElementById("error");
 
 const refresh = document.querySelectorAll(".refresh-time");
@@ -68,16 +70,6 @@ async function updateData() {
       throw new Error(`Problem connecting to API: ${e.message}`);
     }
 
-    // Save this sheet for listing on homepage
-    const now = moment();
-    let lastRefreshObj = getStorageObj("last-refresh") || {};
-    lastRefreshObj[window.trackChanges.sheetID] = now;
-    setStorageObj("last-refresh", lastRefreshObj);
-
-    refresh.forEach(el => {
-      el.textContent = now.format("LTS");
-    });
-
     if (!rsp.ok) {
       throw new Error("Could not contact API");
     }
@@ -87,6 +79,21 @@ async function updateData() {
     if (!body.data) {
       throw new Error("No data returned");
     }
+
+    sheetTitle.innerText = `(${body.meta.sheet_title})`;
+
+    // Save this sheet for listing on homepage
+    const now = moment();
+    let recentSheetsObj = getStorageObj("recent-sheets") || {};
+    recentSheetsObj[window.trackChanges.sheetID] = {
+      time: now,
+      title: body.meta.sheet_title
+    };
+    setStorageObj("recent-sheets", recentSheetsObj);
+
+    refresh.forEach(el => {
+      el.textContent = now.format("LTS");
+    });
 
     // New table contents
     let tableBody = document.createElement("tbody");

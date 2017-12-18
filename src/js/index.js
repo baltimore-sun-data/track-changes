@@ -5,26 +5,28 @@ import { getStorageObj } from "./utils.js";
 
 function listRecentSheets() {
   const recentSheetsList = document.querySelector(".recent-sheets-list");
-  const lastRefreshObj = getStorageObj("last-refresh") || {};
+  const recentSheetsObj = getStorageObj("recent-sheets") || {};
 
   // Sort sheets by reverse chron.
-  let keys = Object.keys(lastRefreshObj);
-  keys.sort((a, b) => lastRefreshObj[a] < lastRefreshObj[b]);
+  let keys = Object.keys(recentSheetsObj);
+  keys.sort((a, b) => recentSheetsObj[a].time < recentSheetsObj[b].time);
 
   if (keys.length < 1) {
     return;
   }
   recentSheetsList.innerHTML = "";
 
-  keys.forEach(sheet => {
-    let lastRefresh = lastRefreshObj[sheet];
+  keys.forEach(sheetID => {
+    let sheet = recentSheetsObj[sheetID];
 
     recentSheetsList.insertAdjacentHTML(
       "beforeend",
       html`
-          <li data-date=${lastRefresh}>
-            <a href="?sheet=${sheet}">
-              Sheet last accessed ${moment(lastRefresh).fromNow()}
+          <li data-date=${sheet.time}>
+            <a href="?sheet=${sheetID}">
+              Sheet "${sheet.title}" last accessed ${moment(
+        sheet.time
+      ).fromNow()}
             </a>
           </li>
 `
