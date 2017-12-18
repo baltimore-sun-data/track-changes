@@ -32,10 +32,25 @@ func (a *apiResponse) fromSheet(gdoc string) error {
 		return errors.WithMessage(err, "Sheet does not contain expected data")
 	}
 
-	ctx, err := a.fromRows(sheet.Rows)
+	a.Lock()
+	// can't defer because of call to jobs().start()
+
+	a.data, err = pageInfofromRows(a.data, sheet.Rows)
 	if err != nil {
+		a.Unlock()
 		return err
 	}
+
+	a.title = spreadsheet.Properties.Title
+	// Kill off existing jobs
+	if a.cancel != nil {
+		a.cancel()
+		a.cancel = nil
+	}
+
+	var ctx context.Context
+	ctx, a.cancel = context.WithCancel(context.Background())
+	a.Unlock()
 
 	log.Printf("Succesfully processed Google Sheet")
 	go a.jobs().start(ctx)
@@ -43,10 +58,7 @@ func (a *apiResponse) fromSheet(gdoc string) error {
 	return nil
 }
 
-func (a *apiResponse) fromRows(rows [][]spreadsheet.Cell) (ctx context.Context, err error) {
-	a.Lock()
-	defer a.Unlock()
-
+func pageInfofromRows(oldData []pageInfo, rows [][]spreadsheet.Cell) (pages []pageInfo, err error) {
 	if len(rows) < 1 {
 		return nil, fmt.Errorf("Google Sheet does not contain any rows")
 	}
@@ -69,20 +81,12 @@ func (a *apiResponse) fromRows(rows [][]spreadsheet.Cell) (ctx context.Context, 
 		return nil, errors.WithMessage(err, "spreadsheet missing header")
 	}
 
-	// Kill off existing jobs
-	if a.cancel != nil {
-		a.cancel()
-	}
-
 	// Save info between refreshes
 	oldInfo := map[string]*pageInfo{}
-	for i := range a.data {
-		pp := &a.data[i]
+	for i := range oldData {
+		pp := &oldData[i]
 		oldInfo[pp.Id] = pp
 	}
-
-	ctx, a.cancel = context.WithCancel(context.Background())
-	a.data = nil
 
 	for _, row := range rows[1:] {
 		if len(row) != rowLen {
@@ -90,7 +94,7 @@ func (a *apiResponse) fromRows(rows [][]spreadsheet.Cell) (ctx context.Context, 
 		}
 
 		if row[0].Value == "" {
-			return ctx, nil
+			return
 		}
 
 		// Use old info as basis
@@ -105,10 +109,10 @@ func (a *apiResponse) fromRows(rows [][]spreadsheet.Cell) (ctx context.Context, 
 		pi.Url = row[notificationUrlIdx].Value
 		pi.Selector = row[selectorIdx].Value
 
-		a.data = append(a.data, *pi)
+		pages = append(pages, *pi)
 	}
 
-	return ctx, nil
+	return
 }
 
 func indexFields(row []spreadsheet.Cell, fields map[string]*int) error {

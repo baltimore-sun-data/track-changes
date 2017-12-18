@@ -26,6 +26,7 @@ type pageInfo struct {
 
 type apiResponse struct {
 	data   []pageInfo
+	title  string
 	cancel context.CancelFunc
 	sync.RWMutex
 }
@@ -92,8 +93,9 @@ func (a *apiResponse) MarshalJSON() ([]byte, error) {
 	return json.Marshal(envelope{
 		Data: &a.data,
 		Meta: struct {
+			Title        string        `json:"sheet_title"`
 			PollInterval time.Duration `json:"poll_interval"`
-		}{dSleep / time.Millisecond},
+		}{a.title, dSleep / time.Millisecond},
 	})
 }
 
