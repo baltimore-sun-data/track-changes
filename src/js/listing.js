@@ -2,13 +2,9 @@ import { html } from "es6-string-html-template";
 import moment from "moment";
 import tinysort from "tinysort";
 
-// Convenience extension to NodeList:
-NodeList.prototype.addEventListener = function(event, func) {
-  this.forEach(function(content, item) {
-    content.addEventListener(event, func);
-  });
-};
+import { getStorageObj, setStorageObj } from "./utils.js";
 
+const apiUrl = `/api/sheet/${window.trackChanges.sheetID}`;
 const apiOptions = !window.trackChanges.basicAuthHeader
   ? {}
   : {
@@ -67,13 +63,19 @@ async function updateData() {
     let rsp;
 
     try {
-      rsp = await fetch(trackChanges.apiUrl, apiOptions);
+      rsp = await fetch(apiUrl, apiOptions);
     } catch (e) {
       throw new Error(`Problem connecting to API: ${e.message}`);
     }
 
+    // Save this sheet for listing on homepage
+    const now = moment();
+    let lastRefreshObj = getStorageObj("last-refresh") || {};
+    lastRefreshObj[window.trackChanges.sheetID] = now;
+    setStorageObj("last-refresh", lastRefreshObj);
+
     refresh.forEach(el => {
-      el.textContent = moment().format("LTS");
+      el.textContent = now.format("LTS");
     });
 
     if (!rsp.ok) {
@@ -162,7 +164,7 @@ async function updateSheet() {
     let opts = Object.assign({}, apiOptions, { method: "POST" });
 
     try {
-      rsp = await fetch(trackChanges.apiUrl, opts);
+      rsp = await fetch(apiUrl, opts);
     } catch (e) {
       throw new Error(`Problem connecting to API: ${e.message}`);
     }

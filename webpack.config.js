@@ -16,6 +16,7 @@ module.exports = (env = {}) => {
     context: path.resolve(__dirname, "src"),
     entry: {
       main: "./scss/app.scss",
+      index: "./js/index.js",
       listing: "./js/listing.js",
       vendor: ["es6-string-html-template", "moment", "tinysort"]
     },

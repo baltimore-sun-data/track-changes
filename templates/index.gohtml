@@ -1,18 +1,22 @@
 {{define "title"}}Choose Sheet{{end}}
+{{define "js-foot"}}
+<script type="text/javascript" src='{{ index .Manifest "index.js" }}' async defer></script>
+{{end}}
 {{define "body"}}
 
   <h2>Select pages to track</h2>
+  <h3>New Sheet</h3>
   <form method="get">
     <input type="text" name="sheet" placeholder="Google Sheets URL">
     <button>Submit</button>
   </form>
 
-  <h2>Help</h2>
+  <h3>Recently Accessed Sheets</h3>
+  <ul class="recent-sheets-list">
+    <li>None.</li>
+  </ul>
 
-<html>
- <head>
- </head>
- <body>
+  <h2>Help</h2>
   <p>
    Go to <a href="https://sheets.google.com">Google Sheets</a>
    and create a new document with a list of pages to track. The first row should have the following header (order is not important, extra columns will be ignored):
@@ -58,7 +62,4 @@
   <p>
     Once the spreadsheet has been created, create a share link. Set the spreadsheet permissions so that anyone with the URL can view it. Copy and paste the URL above.
   </p>
- </body>
-</html>
-
 {{end}}
