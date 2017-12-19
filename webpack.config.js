@@ -18,7 +18,12 @@ module.exports = (env = {}) => {
       main: "./scss/app.scss",
       index: "./js/index.js",
       listing: "./js/listing.js",
-      vendor: ["es6-string-html-template", "moment", "tinysort"]
+      vendor: [
+        "es6-string-html-template",
+        "moment",
+        "tinysort",
+        "./js/utils.js"
+      ]
     },
     output: {
       filename: `js/${namePattern}.js`,
