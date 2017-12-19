@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/pkg/errors"
 	"golang.org/x/oauth2/google"
@@ -93,21 +94,23 @@ func pageInfofromRows(oldData []pageInfo, rows [][]spreadsheet.Cell) (pages []pa
 			return nil, fmt.Errorf("malformed row")
 		}
 
+		// Number of cells returned may be much bigger than what is used
+		// So just bail if you hit an empty space
 		if row[0].Value == "" {
 			return
 		}
 
 		// Use old info as basis
-		pi := oldInfo[row[idIdx].Value]
+		pi := oldInfo[getTrimmed(row, idIdx)]
 		if pi == nil {
 			pi = &pageInfo{}
 		}
-		pi.Id = row[idIdx].Value
-		pi.HomePageUrl = row[homepageUrlIdx].Value
-		pi.Twitter = row[screennameIdx].Value
-		pi.DisplayName = row[nameIdx].Value
-		pi.Url = row[notificationUrlIdx].Value
-		pi.Selector = row[selectorIdx].Value
+		pi.Id = getTrimmed(row, idIdx)
+		pi.HomePageUrl = getTrimmed(row, homepageUrlIdx)
+		pi.Twitter = getTrimmed(row, screennameIdx)
+		pi.DisplayName = getTrimmed(row, nameIdx)
+		pi.Url = getTrimmed(row, notificationUrlIdx)
+		pi.Selector = getTrimmed(row, selectorIdx)
 
 		pages = append(pages, *pi)
 	}
@@ -134,4 +137,8 @@ func indexFields(row []spreadsheet.Cell, fields map[string]*int) error {
 		}
 	}
 	return nil
+}
+
+func getTrimmed(row []spreadsheet.Cell, idx int) string {
+	return strings.TrimSpace(row[idx].Value)
 }
