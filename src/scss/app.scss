@@ -26,7 +26,7 @@ p {
   margin: 0;
 }
 
-#xtable {
+.item-table {
   border-collapse: collapse;
   border: 1px solid $border-color;
   text-align: left;
@@ -60,6 +60,12 @@ p {
     color: $highlight-text-color;
     max-height: auto;
     white-space: normal;
+  }
+
+  .table-check {
+    padding: 0;
+    text-align: center;
+    width: 1.5em;
   }
 
   .table-time {

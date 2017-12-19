@@ -24,19 +24,40 @@
     </p>
     <p id="error" class="display-none"></p>
 
-    <table id="xtable">
-     <thead>
-      <tr>
-       <th class="sortable">Name</th>
-       <th>Content</th>
-       <th>Tweet</th>
-       <th class="sortable table-time">Last Change</th>
-       <th class="sortable table-time">Last Check</th>
-       <th class="sortable table-error">Errors</th>
-      </tr>
-     </thead>
-     <tbody>
-      <tr><td colspan="6">Loading...</td></tr>
-     </tbody>
+    <h2>Active Group</h2>
+    <table class="item-table" id="active-table">
+      <thead>
+        <tr>
+          <th class="table-check"><input type="checkbox" class=""></th>
+          <th class="sortable">Name</th>
+          <th>Content</th>
+          <th>Tweet</th>
+          <th class="sortable table-time">Last Change</th>
+          <th class="sortable table-time">Last Check</th>
+          <th class="sortable table-error">Errors</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td colspan="7">Loading...</td></tr>
+      </tbody>
     </table>
+
+    <h2>Processed Group</h2>
+    <table class="item-table" id="processed-table">
+      <thead>
+        <tr>
+          <th class="table-check"><input type="checkbox" class=""></th>
+          <th class="sortable">Name</th>
+          <th>Content</th>
+          <th>Tweet</th>
+          <th class="sortable table-time">Last Change</th>
+          <th class="sortable table-time">Last Check</th>
+          <th class="sortable table-error">Errors</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td colspan="7">Loading...</td></tr>
+      </tbody>
+    </table>
+
 {{end}}

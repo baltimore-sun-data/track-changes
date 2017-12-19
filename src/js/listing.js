@@ -4,20 +4,11 @@ import tinysort from "tinysort";
 
 import { getStorageObj, setStorageObj } from "./utils.js";
 
-const apiUrl = `/api/sheet/${window.trackChanges.sheetID}`;
-const apiOptions = !window.trackChanges.basicAuthHeader
-  ? {}
-  : {
-      method: "GET",
-      headers: {
-        Authorization: `Basic ${window.trackChanges.basicAuthHeader}`
-      }
-    };
-window.next_poll = 5 * 60 * 1000; // 5 minute default
-
-const table = document.getElementById("xtable");
-const tableHead = table.querySelector("thead");
-const sortableTh = tableHead.querySelectorAll("th.sortable");
+// Constant selectors
+const tables = document.querySelectorAll(".item-table");
+const sortableTh = document.querySelectorAll("th.sortable");
+const activeTable = document.querySelector("#active-table");
+const processedTable = document.querySelector("#processed-table");
 
 const sheetTitle = document.querySelector(".header-sheet-title");
 
@@ -28,25 +19,47 @@ const refreshBtn = document.querySelectorAll(".refresh-btn");
 
 const sheetBtn = document.querySelectorAll(".sheet-btn");
 
-// Global to preserve sorting between refreshes
-let sortOptions = {};
+// Global values
+const apiUrl = `/api/sheet/${window.trackChanges.sheetID}`;
+const apiOptions = !window.trackChanges.basicAuthHeader
+  ? {}
+  : {
+      method: "GET",
+      headers: {
+        Authorization: `Basic ${window.trackChanges.basicAuthHeader}`
+      }
+    };
+
+const processedIDsKey = `processed-ids-${window.trackChanges.sheetID}`;
+const processedIDs = getStorageObj(processedIDsKey) || {};
+const apiData = {
+  "active-table": [],
+  "processed-table": []
+};
+
+window.next_poll = 5 * 60 * 1000; // 5 minute default
 
 // Set up data-indexes for later convenience
-tableHead.querySelectorAll("th").forEach((el, i) => {
-  el.setAttribute("data-index", i + 1);
+tables.forEach(table => {
+  // Keep sort options on node to preserve between refreshes
+  table.sortOptions = {};
+  table.querySelectorAll("thead th").forEach((el, i) => {
+    el.setAttribute("data-index", i + 1);
+  });
 });
 
-sortableTh.addEventListener("click", e => {
+function sortColumn(e) {
   const tableHeader = e.target;
+  const table = tableHeader.closest("table");
   const tableHeaderIndex = tableHeader.getAttribute("data-index");
   const isDescending = tableHeader.getAttribute("data-order") === "desc";
   const order = isDescending ? "asc" : "desc";
   tableHeader.setAttribute("data-order", order);
 
   // Change highlight
-  let selector = `td:nth-child(${tableHeaderIndex})`;
+  const selector = `td:nth-child(${tableHeaderIndex})`;
 
-  sortOptions = {
+  table.sortOptions = {
     selector: selector,
     data: "sort",
     order: order
@@ -57,8 +70,8 @@ sortableTh.addEventListener("click", e => {
     .forEach(el => el.classList.remove("sort-col"));
   tableHeader.classList.add("sort-col");
   table.querySelectorAll(selector).forEach(el => el.classList.add("sort-col"));
-  tinysort(table.querySelectorAll("tbody tr"), sortOptions);
-});
+  tinysort(table.querySelectorAll("tbody tr"), table.sortOptions);
+}
 
 async function updateData() {
   try {
@@ -71,7 +84,7 @@ async function updateData() {
     }
 
     if (!rsp.ok) {
-      throw new Error("Could not contact API");
+      throw new Error("Unexpected response from API");
     }
 
     const body = await rsp.json();
@@ -84,7 +97,7 @@ async function updateData() {
 
     // Save this sheet for listing on homepage
     const now = moment();
-    let recentSheetsObj = getStorageObj("recent-sheets") || {};
+    const recentSheetsObj = getStorageObj("recent-sheets") || {};
     recentSheetsObj[window.trackChanges.sheetID] = {
       time: now,
       title: body.meta.sheet_title
@@ -95,14 +108,45 @@ async function updateData() {
       el.textContent = now.format("LTS");
     });
 
-    // New table contents
-    let tableBody = document.createElement("tbody");
+    apiData["active-table"] = [];
+    apiData["processed-table"] = [];
 
-    body.data.forEach(item =>
-      tableBody.insertAdjacentHTML(
-        "beforeend",
-        html`
+    body.data.forEach(row => {
+      if (processedIDs[row.id]) {
+        apiData["processed-table"].push(row);
+      } else {
+        apiData["active-table"].push(row);
+      }
+    });
+
+    displayData(activeTable, apiData["active-table"]);
+    displayData(processedTable, apiData["processed-table"]);
+
+    error.classList.add("display-none");
+
+    // Update a bit more frequently than the poller
+    window.next_poll = body.meta.poll_interval / 4;
+  } catch (e) {
+    error.classList.remove("display-none");
+    error.textContent = `Error returning data: ${e.message}`;
+    throw e;
+  } finally {
+    window.setTimeout(updateData, window.next_poll);
+  }
+}
+
+function displayData(table, data) {
+  // New table contents
+  let tableBody = document.createElement("tbody");
+
+  data.forEach(item =>
+    tableBody.insertAdjacentHTML(
+      "beforeend",
+      html`
   <tr data-row-id="${item.id}">
+    <td class="table-check">
+      <input type="checkbox" class="table-group-btn">
+    </td>
     <td data-sort="${item.display_name}">
       <a href="${item.homepage_url}" target="_blank">${item.display_name}</a>
     </td>
@@ -141,28 +185,38 @@ async function updateData() {
     </td>
   </tr>
 `
-      )
-    );
+    )
+  );
 
-    tableBody
-      .querySelectorAll(sortOptions.selector)
-      .forEach(el => el.classList.add("sort-col"));
-    tinysort(tableBody.querySelectorAll("tr"), sortOptions);
+  tableBody
+    .querySelectorAll(".table-group-btn")
+    .forEach(el => el.addEventListener("click", changeTableGroup));
 
-    // Swap in the new table contents
-    let oldBody = table.querySelector("tbody");
-    oldBody.parentNode.replaceChild(tableBody, oldBody);
+  tableBody
+    .querySelectorAll(table.sortOptions.selector)
+    .forEach(el => el.classList.add("sort-col"));
+  tinysort(tableBody.querySelectorAll("tr"), table.sortOptions);
 
-    error.classList.add("display-none");
+  // Swap in the new table contents
+  let oldBody = table.querySelector("tbody");
+  oldBody.parentNode.replaceChild(tableBody, oldBody);
+}
 
-    // Update a bit more frequently than the poller
-    window.next_poll = body.meta.poll_interval / 4;
-  } catch (e) {
-    error.classList.remove("display-none");
-    error.textContent = `Error returning data: ${e.message}`;
-  } finally {
-    window.setTimeout(updateData, window.next_poll);
-  }
+function changeTableGroup(e) {
+  const srcTable = e.target.closest("table");
+  const isProcessed = srcTable.id === "processed-table";
+  const dstTableID = isProcessed ? "active-table" : "processed-table";
+  const rowID = e.target.closest("tr").attributes["data-row-id"].value;
+  const srcIdx = apiData[srcTable.id].findIndex(row => row.id === rowID);
+  apiData[dstTableID].push(apiData[srcTable.id][srcIdx]);
+  apiData[srcTable.id].splice(srcIdx, 1);
+
+  displayData(activeTable, apiData["active-table"]);
+  displayData(processedTable, apiData["processed-table"]);
+
+  // Save in localStorage for page reloads
+  processedIDs[rowID] = !isProcessed;
+  setStorageObj(processedIDsKey, processedIDs);
 }
 
 async function updateSheet() {
@@ -190,3 +244,4 @@ async function updateSheet() {
 window.addEventListener("load", updateData);
 refreshBtn.addEventListener("click", updateData);
 sheetBtn.addEventListener("click", updateSheet);
+sortableTh.addEventListener("click", sortColumn);
