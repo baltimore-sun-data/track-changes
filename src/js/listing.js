@@ -30,40 +30,80 @@ const apiOptions = !window.trackChanges.basicAuthHeader
       }
     };
 
-const processedIDsKey = `processed-ids-${window.trackChanges.sheetID}`;
-const processedIDs = getStorageObj(processedIDsKey) || {};
-const apiData = {
-  "active-table": [],
-  "processed-table": []
-};
+const pageData = new class {
+  constructor() {
+    this.processedIDsKey = `processed-ids:${window.trackChanges.sheetID}`;
+    this.processedIDs = getStorageObj(this.processedIDsKey) || {};
+    this.activeData = [];
+    this.processedData = [];
+  }
 
-window.next_poll = 5 * 60 * 1000; // 5 minute default
+  set data(rows) {
+    const activeData = [];
+    const processedData = [];
 
-// Set up data-indexes for later convenience
-tables.forEach(table => {
-  // Keep sort options on node to preserve between refreshes
-  table.sortOptions = {};
-  table.querySelectorAll("thead th").forEach((el, i) => {
-    el.setAttribute("data-index", i + 1);
-  });
-
-  table.querySelector(".table-group-btn").addEventListener("click", e => {
-    e.target.checked = false;
-    const isProcessed = table.id === "processed-table";
-    const dstTableID = isProcessed ? "active-table" : "processed-table";
-    Array.prototype.push.apply(apiData[dstTableID], apiData[table.id]);
-    apiData[table.id] = [];
-
-    apiData[dstTableID].forEach(row => {
-      processedIDs[row.id] = !isProcessed;
+    rows.forEach(row => {
+      if (this.processedIDs[row.id]) {
+        processedData.push(row);
+      } else {
+        activeData.push(row);
+      }
     });
 
-    setStorageObj(processedIDsKey, processedIDs);
+    this.activeData = activeData;
+    this.processedData = processedData;
+  }
 
-    displayData(activeTable, apiData["active-table"]);
-    displayData(processedTable, apiData["processed-table"]);
-  });
-});
+  display() {
+    displayData(activeTable, this.activeData);
+    displayData(processedTable, this.processedData);
+  }
+
+  toggle(tableID, rowID) {
+    const fromActive = tableID === "active-table";
+    let srcArray, dstArray;
+    if (fromActive) {
+      srcArray = this.activeData;
+      dstArray = this.processedData;
+    } else {
+      srcArray = this.processedData;
+      dstArray = this.activeData;
+    }
+
+    const srcIdx = srcArray.findIndex(row => row.id === rowID);
+    dstArray.push(srcArray[srcIdx]);
+    srcArray.splice(srcIdx, 1);
+
+    this.processedIDs[rowID] = fromActive;
+    this.save();
+  }
+
+  removeAllFrom(tableID) {
+    const fromActive = tableID === "active-table";
+    let srcArray, dstArray;
+    if (fromActive) {
+      srcArray = this.activeData;
+      dstArray = this.processedData;
+    } else {
+      srcArray = this.processedData;
+      dstArray = this.activeData;
+    }
+
+    Array.prototype.push.apply(dstArray, srcArray);
+    srcArray.splice(0, srcArray.length);
+
+    dstArray.forEach(row => {
+      this.processedIDs[row.id] = fromActive;
+    });
+    this.save();
+  }
+
+  save() {
+    setStorageObj(this.processedIDsKey, this.processedIDs);
+  }
+}();
+
+window.next_poll = 5 * 60 * 1000; // 5 minute default
 
 function sortColumn(e) {
   const tableHeader = e.target;
@@ -125,19 +165,8 @@ async function updateData() {
       el.textContent = now.format("LTS");
     });
 
-    apiData["active-table"] = [];
-    apiData["processed-table"] = [];
-
-    body.data.forEach(row => {
-      if (processedIDs[row.id]) {
-        apiData["processed-table"].push(row);
-      } else {
-        apiData["active-table"].push(row);
-      }
-    });
-
-    displayData(activeTable, apiData["active-table"]);
-    displayData(processedTable, apiData["processed-table"]);
+    pageData.data = body.data;
+    pageData.display();
 
     error.classList.add("display-none");
 
@@ -152,11 +181,11 @@ async function updateData() {
   }
 }
 
-function displayData(table, data) {
+function displayData(table, rows) {
   // New table contents
   let tableBody = document.createElement("tbody");
 
-  data.forEach(item =>
+  rows.forEach(item =>
     tableBody.insertAdjacentHTML(
       "beforeend",
       html`
@@ -212,7 +241,11 @@ function displayData(table, data) {
   tableBody
     .querySelectorAll(table.sortOptions.selector)
     .forEach(el => el.classList.add("sort-col"));
-  tinysort(tableBody.querySelectorAll("tr"), table.sortOptions);
+
+  // Conditional to suppress a warning
+  if (rows.length) {
+    tinysort(tableBody.querySelectorAll("tr"), table.sortOptions);
+  }
 
   // Swap in the new table contents
   let oldBody = table.querySelector("tbody");
@@ -221,19 +254,10 @@ function displayData(table, data) {
 
 function changeTableGroup(e) {
   const srcTable = e.target.closest("table");
-  const isProcessed = srcTable.id === "processed-table";
-  const dstTableID = isProcessed ? "active-table" : "processed-table";
   const rowID = e.target.closest("tr").attributes["data-row-id"].value;
-  const srcIdx = apiData[srcTable.id].findIndex(row => row.id === rowID);
-  apiData[dstTableID].push(apiData[srcTable.id][srcIdx]);
-  apiData[srcTable.id].splice(srcIdx, 1);
 
-  displayData(activeTable, apiData["active-table"]);
-  displayData(processedTable, apiData["processed-table"]);
-
-  // Save in localStorage for page reloads
-  processedIDs[rowID] = !isProcessed;
-  setStorageObj(processedIDsKey, processedIDs);
+  pageData.toggle(srcTable.id, rowID);
+  pageData.display();
 }
 
 async function updateSheet() {
@@ -257,6 +281,22 @@ async function updateSheet() {
     error.textContent = `Error returning data: ${e.message}`;
   }
 }
+
+// Set up data-indexes for later convenience
+tables.forEach(table => {
+  // Keep sort options on node to preserve between refreshes
+  table.sortOptions = {};
+  table.querySelectorAll("thead th").forEach((el, i) => {
+    el.setAttribute("data-index", i + 1);
+  });
+
+  table.querySelector(".table-group-btn").addEventListener("click", e => {
+    e.target.checked = false;
+
+    pageData.removeAllFrom(table.id);
+    pageData.display();
+  });
+});
 
 window.addEventListener("load", updateData);
 refreshBtn.addEventListener("click", updateData);
