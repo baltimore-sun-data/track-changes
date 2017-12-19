@@ -46,6 +46,23 @@ tables.forEach(table => {
   table.querySelectorAll("thead th").forEach((el, i) => {
     el.setAttribute("data-index", i + 1);
   });
+
+  table.querySelector(".table-group-btn").addEventListener("click", e => {
+    e.target.checked = false;
+    const isProcessed = table.id === "processed-table";
+    const dstTableID = isProcessed ? "active-table" : "processed-table";
+    Array.prototype.push.apply(apiData[dstTableID], apiData[table.id]);
+    apiData[table.id] = [];
+
+    apiData[dstTableID].forEach(row => {
+      processedIDs[row.id] = !isProcessed;
+    });
+
+    setStorageObj(processedIDsKey, processedIDs);
+
+    displayData(activeTable, apiData["active-table"]);
+    displayData(processedTable, apiData["processed-table"]);
+  });
 });
 
 function sortColumn(e) {
