@@ -7,10 +7,11 @@ const webpack = require("webpack");
 
 module.exports = (env = {}) => {
   const namePattern = env.production ? "[name].[chunkhash]" : "[name]";
+  const cssNamePattern = env.production ? "[name].[contenthash]" : "[name]";
   const devtool = env.production ? false : "inline-source-map";
 
   const extractSass = new ExtractTextPlugin({
-    filename: `css/${namePattern}.css`
+    filename: `css/${cssNamePattern}.css`
   });
 
   return {
