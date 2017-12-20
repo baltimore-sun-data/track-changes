@@ -22,7 +22,7 @@ module.exports = (env = {}) => {
         "es6-string-html-template",
         "moment",
         "tinysort",
-        "./js/utils.js"
+        "./js/storage.js"
       ]
     },
     output: {

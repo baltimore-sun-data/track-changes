@@ -1,32 +1,25 @@
 import { html } from "es6-string-html-template";
 import moment from "moment";
 
-import { getStorageObj } from "./utils.js";
+import { appProps } from "./storage.js";
 
 function listRecentSheets() {
   const recentSheetsList = document.querySelector(".recent-sheets-list");
-  const recentSheetsObj = getStorageObj("recent-sheets") || {};
+  const recentSheets = appProps.recentSheets;
 
-  // Sort sheets by reverse chron.
-  let keys = Object.keys(recentSheetsObj);
-  keys.sort((a, b) => recentSheetsObj[a].time < recentSheetsObj[b].time);
-
-  if (keys.length < 1) {
+  if (recentSheets.length < 1) {
     return;
   }
+
   recentSheetsList.innerHTML = "";
 
-  keys.forEach(sheetID => {
-    let sheet = recentSheetsObj[sheetID];
-
+  recentSheets.forEach(obj => {
     recentSheetsList.insertAdjacentHTML(
       "beforeend",
       html`
-          <li data-date=${sheet.time}>
-            <a href="?sheet=${sheetID}">
-              Sheet "${sheet.title}" last accessed ${moment(
-        sheet.time
-      ).fromNow()}
+          <li data-date=${obj.time}>
+            <a href="?sheet=${obj.sheetID}">
+              Sheet "${obj.title}" last accessed ${moment(obj.time).fromNow()}
             </a>
           </li>
 `

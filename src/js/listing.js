@@ -2,7 +2,7 @@ import { html } from "es6-string-html-template";
 import moment from "moment";
 import tinysort from "tinysort";
 
-import { getStorageObj, setStorageObj } from "./utils.js";
+import { getStorageObj, setStorageObj, appProps } from "./storage.js";
 
 // Constant selectors
 const tables = document.querySelectorAll(".item-table");
@@ -19,6 +19,13 @@ const refreshBtn = document.querySelectorAll(".refresh-btn");
 
 const sheetBtn = document.querySelectorAll(".sheet-btn");
 
+// Convenience extension to NodeList:
+NodeList.prototype.addEventListener = function(event, func) {
+  this.forEach(function(content, item) {
+    content.addEventListener(event, func);
+  });
+};
+
 // Global values
 const apiUrl = `/api/sheet/${window.trackChanges.sheetID}`;
 const apiOptions = !window.trackChanges.basicAuthHeader
@@ -30,7 +37,7 @@ const apiOptions = !window.trackChanges.basicAuthHeader
       }
     };
 
-const pageData = new class {
+const pageProps = new class {
   constructor() {
     this.processedIDsKey = `processed-ids:${window.trackChanges.sheetID}`;
     this.processedIDs = getStorageObj(this.processedIDsKey) || {};
@@ -153,20 +160,14 @@ async function updateData() {
     sheetTitle.innerText = `(${body.meta.sheet_title})`;
 
     // Save this sheet for listing on homepage
-    const now = moment();
-    const recentSheetsObj = getStorageObj("recent-sheets") || {};
-    recentSheetsObj[window.trackChanges.sheetID] = {
-      time: now,
-      title: body.meta.sheet_title
-    };
-    setStorageObj("recent-sheets", recentSheetsObj);
+    appProps.addRecentSheet(window.trackChanges.sheetID, body.meta.sheet_title);
 
     refresh.forEach(el => {
-      el.textContent = now.format("LTS");
+      el.textContent = moment().format("LTS");
     });
 
-    pageData.data = body.data;
-    pageData.display();
+    pageProps.data = body.data;
+    pageProps.display();
 
     error.classList.add("display-none");
 
@@ -236,7 +237,7 @@ function displayData(table, rows) {
 
   tableBody
     .querySelectorAll(".table-group-btn")
-    .forEach(el => el.addEventListener("click", changeTableGroup));
+    .addEventListener("click", changeTableGroup);
 
   tableBody
     .querySelectorAll(table.sortOptions.selector)
@@ -256,8 +257,8 @@ function changeTableGroup(e) {
   const srcTable = e.target.closest("table");
   const rowID = e.target.closest("tr").attributes["data-row-id"].value;
 
-  pageData.toggle(srcTable.id, rowID);
-  pageData.display();
+  pageProps.toggle(srcTable.id, rowID);
+  pageProps.display();
 }
 
 async function updateSheet() {
@@ -293,8 +294,8 @@ tables.forEach(table => {
   table.querySelector(".table-group-btn").addEventListener("click", e => {
     e.target.checked = false;
 
-    pageData.removeAllFrom(table.id);
-    pageData.display();
+    pageProps.removeAllFrom(table.id);
+    pageProps.display();
   });
 });
 
