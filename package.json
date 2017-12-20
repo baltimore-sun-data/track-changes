@@ -60,5 +60,8 @@
     "es6-string-html-template": "^1.0.2",
     "moment": "^2.19.2",
     "tinysort": "^2.3.6"
+  },
+  "resolutions": {
+    "webpack-sources": "1.0.1"
   }
 }

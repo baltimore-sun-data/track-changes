@@ -6,7 +6,8 @@ const path = require("path");
 const webpack = require("webpack");
 
 module.exports = (env = {}) => {
-  let namePattern = env.production ? "[name].[chunkhash]" : "[name]";
+  const namePattern = env.production ? "[name].[chunkhash]" : "[name]";
+  const devtool = env.production ? false : "inline-source-map";
 
   const extractSass = new ExtractTextPlugin({
     filename: `css/${namePattern}.css`
@@ -85,6 +86,7 @@ module.exports = (env = {}) => {
       new MinifyPlugin(),
       new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/),
       extractSass
-    ]
+    ],
+    devtool
   };
 };
