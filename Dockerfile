@@ -1,12 +1,16 @@
 FROM golang:alpine as go-builder
-WORKDIR /go/src/github.com/baltimore-sun-data/track-changes
-COPY . .
 
 # Get dep working and install dependencies
 RUN apk --no-cache add git
 RUN go get -u -v github.com/golang/dep/cmd/dep
-RUN dep ensure
 
+# Separate vendor fetching step for better caching
+COPY Gopkg.lock Gopkg.toml /go/src/github.com/baltimore-sun-data/track-changes/
+WORKDIR /go/src/github.com/baltimore-sun-data/track-changes
+RUN dep ensure -vendor-only
+
+# Build Go binary
+COPY . .
 RUN CGO_ENABLED=0 GOOS=linux go build \
     -ldflags "-X 'main.applicationBuildDate=`date`'" \
     -o app .
@@ -14,11 +18,13 @@ RUN CGO_ENABLED=0 GOOS=linux go build \
 # Node comes with yarn
 FROM node:alpine as yarn-builder
 WORKDIR /go/src/github.com/baltimore-sun-data/track-changes
-COPY . .
-
+COPY package.json yarn.lock ./
 RUN yarn
+
+COPY . .
 RUN yarn run build
 
+# Actual final image
 FROM alpine:latest
 RUN apk --no-cache add ca-certificates
 WORKDIR /root/
